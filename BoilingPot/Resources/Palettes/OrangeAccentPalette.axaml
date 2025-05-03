@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Terracotta/Orange Palette -->
+    <Color x:Key="MainAccentColor">#E07A5F</Color> <!-- Terracotta-ish -->
+    <Color x:Key="AltAccentColor">#FDECDA</Color> <!-- Pale Peach/Cream -->
+    <Color x:Key="DarkAccentColor">#ae6754</Color> <!-- Darker Terracotta -->
+    <Color x:Key="LightAccentColor">#f0bdaf</Color> <!-- Lighter Terracotta -->
+    <Color x:Key="ForegroundAccentColor">#4E2A1E</Color> <!-- Dark Brown for contrast -->
+    <Color x:Key="BackgroundAccentColor">#1C1C1C</Color>
+    <Color x:Key="PointeroverAccentColor">#F2B4A2</Color>
+    <Color x:Key="PressedButtonAccentColor">#E07A5F</Color>
+</ResourceDictionary>

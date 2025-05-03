@@ -1,0 +1,85 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:BoilingPot.ViewModels"
+             xmlns:v="using:BoilingPot.Views.Components"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:settingsViews="clr-namespace:BoilingPot.Views.SettingsViews"
+             xmlns:settingsViewModels="clr-namespace:BoilingPot.ViewModels.SettingsViewModels"
+             mc:Ignorable="d"
+             x:Class="BoilingPot.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
+             Background="Transparent"
+             ClipToBounds="True">
+
+    <Design.DataContext>
+        <vm:SettingsViewModel />
+    </Design.DataContext>
+
+    <UserControl.DataTemplates>
+        <DataTemplate DataType="{x:Type settingsViewModels:GeneralSettingsViewModel}">
+            <settingsViews:GeneralSettingsView /> <!-- Нужен UserControl GeneralSettingsView.axaml -->
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type settingsViewModels:ThemeSettingsViewModel}">
+            <settingsViews:ThemeSettingsView /> <!-- Нужен UserControl ThemeSettingsView.axaml -->
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type settingsViewModels:ModelSettingsViewModel}">
+            <settingsViews:ModelSettingsView />
+        </DataTemplate>
+    </UserControl.DataTemplates>
+
+    <Grid>
+        <TextBlock Opacity="0.3" Background="#1C1C1C" />
+        <Border Width="600" Height="500"
+                Background="{DynamicResource MainAccentColor}"
+                BorderBrush="{DynamicResource AltAccentColor}"
+                BorderThickness="3"
+                CornerRadius="24">
+
+
+            <Grid RowDefinitions="Auto,*" ColumnDefinitions="*" Margin="10">
+                <ui:NavigationView Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                   IsBackButtonVisible="False"
+                                   IsSettingsVisible="False"
+                                   PaneDisplayMode="Left"
+                                   IsPaneOpen="True"
+                                   CornerRadius="24"
+                                   OpenPaneLength="180"
+                                   SelectedItem="{Binding SelectedNavItem, Mode=TwoWay}"
+                                   Background="{DynamicResource MainAccentColor}">
+
+                    <ui:NavigationView.MenuItems>
+                        <ui:NavigationViewItem Content="Общие" Tag="General">
+                            <ui:NavigationViewItem.IconSource>
+                                <ui:SymbolIconSource Symbol="Setting" />
+                            </ui:NavigationViewItem.IconSource>
+                        </ui:NavigationViewItem>
+                        <ui:NavigationViewItem Content="Темы" Tag="Themes">
+                            <ui:NavigationViewItem.IconSource>
+                                <ui:SymbolIconSource Symbol="Highlight" />
+                            </ui:NavigationViewItem.IconSource>
+                        </ui:NavigationViewItem>
+                        <ui:NavigationViewItem Content="Модели" Tag="Models">
+                            <ui:NavigationViewItem.IconSource>
+                                <ui:SymbolIconSource Symbol="AllApps" />
+                            </ui:NavigationViewItem.IconSource>
+                        </ui:NavigationViewItem>
+                    </ui:NavigationView.MenuItems>
+
+                    <ScrollViewer CornerRadius="24">
+                        <ContentControl Margin="5,0,0,0"
+                                        Content="{Binding CurrentSettingSectionViewModel}" />
+                    </ScrollViewer>
+
+                </ui:NavigationView>
+
+                <Button Grid.Row="0" Grid.Column="0"
+                        Classes="CloseButton"
+                        Command="{Binding ShowSettingsCommand}">
+                    <ui:SymbolIcon Symbol="Dismiss" FontSize="20" />
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

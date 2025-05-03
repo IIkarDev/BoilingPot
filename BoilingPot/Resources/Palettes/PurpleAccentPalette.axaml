@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Purple Palette -->
+    <Color x:Key="MainAccentColor">#8A2BE2</Color> <!-- BlueViolet -->
+    <Color x:Key="AltAccentColor">#E9D8FD</Color> <!-- Very Pale Purple -->
+    <Color x:Key="DarkAccentColor">#722fb0</Color> <!-- Darker BlueViolet -->
+    <Color x:Key="LightAccentColor">#c595f1</Color> <!-- Lighter/Softer Purple -->
+    <Color x:Key="ForegroundAccentColor">White</Color>
+    <Color x:Key="BackgroundAccentColor">#1C1C1C</Color>
+    <Color x:Key="PointeroverAccentColor">#B39DDB</Color>
+    <Color x:Key="PressedButtonAccentColor">#8A2BE2</Color>
+</ResourceDictionary>

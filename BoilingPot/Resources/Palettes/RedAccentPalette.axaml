@@ -1,0 +1,13 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Красная палитра -->
+    <Color x:Key="MainAccentColor">#D32F2F</Color> <!-- Насыщенный красный (Material Red 700) -->
+    <Color x:Key="AltAccentColor">#FFCDD2</Color> <!-- Бледно-розовый/красный (Material Red 100) -->
+    <Color x:Key="DarkAccentColor">#a53232</Color> <!-- Темнее основного (Material Red 800) -->
+    <Color x:Key="LightAccentColor">#e99797</Color> <!-- Светлее основного (Material Red 300) -->
+    <Color x:Key="ForegroundAccentColor">White</Color>
+    <Color x:Key="BackgroundAccentColor">#1C1C1C</Color>
+    <Color x:Key="PointeroverAccentColor">#E57373</Color> <!-- Как светлый -->
+    <Color x:Key="PressedButtonAccentColor">#D32F2F</Color> <!-- Как основной -->
+    <!-- ... -->
+</ResourceDictionary>

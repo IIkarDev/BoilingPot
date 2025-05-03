@@ -1,0 +1,58 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="HeaderedContentControl">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid RowDefinitions="Auto,*" ColumnDefinitions="Auto,*">
+
+                    <!-- Header -->
+                    <!-- Убедитесь, что у Border нет непрозрачного фона, иначе фон TextBlock не будет виден -->
+                    <Border Name="HeaderBorderElement"
+                            Background="Transparent" 
+                            ZIndex="1"
+                            Margin="15,0,0,0">
+                        <TextBlock Name="HeaderTextBlock" 
+                                   Padding="5,0"
+                                   Text="{TemplateBinding Header}"
+                                   Background="{DynamicResource ThemeAccentColor}"
+                                   FontWeight="Medium" />
+                                   <!-- Background и Foreground будут заданы стилями ниже -->
+                    </Border>
+
+                    <!-- Content Area -->
+                    <Border Grid.RowSpan="2" Grid.ColumnSpan="2"
+                            Padding="0,5,0,0" CornerRadius="4" Margin="0,10,0,0"
+                            BorderBrush="{DynamicResource ButtonForeground}" BorderThickness="2">
+                        <ContentPresenter Name="PartContentPresenter" Padding="8"
+                                          Content="{TemplateBinding Content}" />
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Стили для кнопки закрытия (остаются без изменений) -->
+    <Style Selector="Button.CloseButton">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Margin" Value="10" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="ToolTip.Tip" Value="Закрыть" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.CloseButton:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}" />
+    </Style>
+    <Style Selector="Button.CloseButton:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPressed}" />
+    </Style>
+</Styles>

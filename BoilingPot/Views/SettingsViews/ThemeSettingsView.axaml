@@ -1,0 +1,81 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:BoilingPot.ViewModels"
+             xmlns:settingsViewModels="clr-namespace:BoilingPot.ViewModels.SettingsViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
+             x:Class="BoilingPot.Views.SettingsViews.ThemeSettingsView"
+             x:DataType="settingsViewModels:ThemeSettingsViewModel"
+             Padding="10">
+
+    <Design.DataContext>
+        <settingsViewModels:ThemeSettingsViewModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.SettingHeader">
+            <Setter Property="Margin" Value="0,15,0,5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <!-- Стиль для RadioButton с картинкой -->
+        <Style Selector="RadioButton.ThemeChoice">
+            <Setter Property="GroupName" Value="Theme" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="MinWidth" Value="100" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Spacing="8">
+        <TextBlock Classes="SectionTitle" Text="Настройки Темы" />
+
+        <!-- Выбор темы -->
+        <TextBlock Classes="SettingHeader" Text="Тема приложения" />
+        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+            <!-- Светлая тема -->
+            <RadioButton Classes="ThemeChoice"
+                         IsChecked="{Binding SelectedTheme, 
+                         Converter={StaticResource StringEqualsConverter}, ConverterParameter=Light}">
+                <StackPanel Spacing="5" HorizontalAlignment="Center">
+                    <Border Width="80" Height="50" Background="White" BorderBrush="LightGray" BorderThickness="1"
+                            CornerRadius="4" />
+                    <TextBlock Text="Светлая" HorizontalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+            <!-- Темная тема -->
+            <RadioButton Classes="ThemeChoice"
+                         IsChecked="{Binding SelectedTheme, 
+                         Converter={StaticResource StringEqualsConverter}, ConverterParameter=Dark}">
+                <StackPanel Spacing="5" HorizontalAlignment="Center">
+                    <Border Width="80" Height="50" Background="#2C2C2C" BorderBrush="Gray" BorderThickness="1"
+                            CornerRadius="4" />
+                    <TextBlock Text="Темная" HorizontalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+            <!-- Системная тема -->
+            <RadioButton Classes="ThemeChoice"
+                         IsChecked="{Binding SelectedTheme, 
+                         Converter={StaticResource StringEqualsConverter}, ConverterParameter=System}">
+                <StackPanel Spacing="5" HorizontalAlignment="Center">
+                    <!-- Можно иконку сюда -->
+                    <Border Width="80" Height="50" Background="Gray" BorderBrush="DarkGray" BorderThickness="1"
+                            CornerRadius="4">
+                        <TextBlock Text="?" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="Системная" HorizontalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+        </StackPanel>
+
+        <TextBlock Classes="SettingHeader" Text="Акцентные цвета" />
+
+        <HeaderedContentControl Header="Основной акцентный цвет">
+            <ComboBox ItemsSource="{Binding AccentPalettes  }"
+                SelectedItem="{Binding SelectedAccentPalette }"
+                HorizontalAlignment="Stretch" />
+        </HeaderedContentControl>
+        
+    </StackPanel>
+</UserControl>

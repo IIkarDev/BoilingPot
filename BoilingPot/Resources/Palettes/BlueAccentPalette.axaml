@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Blue Palette -->
+    <Color x:Key="MainAccentColor">#4682B4</Color> <!-- SteelBlue -->
+    <Color x:Key="AltAccentColor">#E0F2F7</Color> <!-- Very Pale Blue/Cyan -->
+    <Color x:Key="DarkAccentColor">#426c8f</Color> <!-- Darker SteelBlue -->
+    <Color x:Key="LightAccentColor">#a3c1da</Color> <!-- Lighter Desaturated SteelBlue -->
+    <Color x:Key="ForegroundAccentColor">White</Color>
+    <Color x:Key="BackgroundAccentColor">#1C1C1C</Color>
+    <Color x:Key="PointeroverAccentColor">#AECBDC</Color>
+    <Color x:Key="PressedButtonAccentColor">#4682B4</Color>
+</ResourceDictionary>

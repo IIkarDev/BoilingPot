@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Green Palette -->
+    <Color x:Key="MainAccentColor">#2E8B57</Color> <!-- SeaGreen -->
+    <Color x:Key="AltAccentColor">#E8F5E9</Color> <!-- Very Pale Green -->
+    <Color x:Key="DarkAccentColor">#31734e</Color> <!-- Darker SeaGreen -->
+    <Color x:Key="LightAccentColor">#97c5ab</Color> <!-- Lighter SeaGreen -->
+    <Color x:Key="ForegroundAccentColor">White</Color>
+    <Color x:Key="BackgroundAccentColor">#1C1C1C</Color>
+    <Color x:Key="PointeroverAccentColor">#A2D4AF</Color>
+    <Color x:Key="PressedButtonAccentColor">#2E8B57</Color>
+</ResourceDictionary>

@@ -1,0 +1,45 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="BoilingPot.App"
+             xmlns:local="using:BoilingPot"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             xmlns:conv="using:BoilingPot.Converters">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Конвертер -->
+            <conv:StringEqualsConverter x:Key="StringEqualsConverter"/>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://BoilingPot/Resources/Palettes/DefaultAccentPalette.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Резервное определение НЕ требуется, если определяем кисти ниже -->
+            <!-- <Color x:Key="ThemeAccentColor">Transparent</Color> -->
+
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <!-- Определяем ThemeAccentColor как SolidColorBrush для темной темы -->
+                    <SolidColorBrush x:Key="ThemeAccentColor" Color="{DynamicResource DarkAccentColor}"/>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <!-- Определяем ThemeAccentColor как SolidColorBrush для светлой темы -->
+                    <SolidColorBrush x:Key="ThemeAccentColor" Color="{DynamicResource LightAccentColor}"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+        </ResourceDictionary>
+    </Application.Resources>
+
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <sty:FluentAvaloniaTheme PreferUserAccentColor="True"/>
+        <StyleInclude Source="avares://BoilingPot/Styles/HeaderContentControlStyle.axaml"/>
+        <!-- "avares://BoilingPot/Resources/Components/AltPotTheme.axaml" -->
+    </Application.Styles>
+
+</Application>

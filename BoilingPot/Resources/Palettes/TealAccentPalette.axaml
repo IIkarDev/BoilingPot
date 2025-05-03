@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Teal Palette -->
+    <Color x:Key="MainAccentColor">#008080</Color> <!-- Teal -->
+    <Color x:Key="AltAccentColor">#E0F2F1</Color> <!-- Very Pale Teal/Mint -->
+    <Color x:Key="DarkAccentColor">#116b6b</Color> <!-- Darker Teal -->
+    <Color x:Key="LightAccentColor">#80c0c0</Color> <!-- Lighter Teal -->
+    <Color x:Key="ForegroundAccentColor">White</Color>
+    <Color x:Key="BackgroundAccentColor">#1C1C1C</Color>
+    <Color x:Key="PointeroverAccentColor">#80CBC4</Color>
+    <Color x:Key="PressedButtonAccentColor">#008080</Color>
+</ResourceDictionary>

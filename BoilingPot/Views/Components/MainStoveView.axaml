@@ -1,0 +1,98 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:BoilingPot.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="BoilingPot.Views.Components.MainStoveView"
+             x:DataType="vm:CommonViewModel">
+
+    <!-- Плита -->
+    <Canvas Width="250" Height="200">
+        <!-- ... ваш код для рисования плиты ... -->
+        <Rectangle Fill="DimGray" Width="15" Height="30" RadiusX="2" RadiusY="2" Canvas.Left="20"
+                   Canvas.Top="165" />
+        <Rectangle Fill="DimGray" Width="15" Height="30" RadiusX="2" RadiusY="2" Canvas.Left="215"
+                   Canvas.Top="165" />
+        <Rectangle Fill="Silver" Stroke="DarkGray" StrokeThickness="2" Width="210" Height="120" RadiusX="5"
+                   RadiusY="5" Canvas.Left="20" Canvas.Top="50">
+            <Rectangle.Effect>
+                <DropShadowEffect BlurRadius="5" Color="Gray" Opacity="0.6" />
+            </Rectangle.Effect>
+        </Rectangle>
+        <Rectangle Fill="LightGray" Stroke="Gray" StrokeThickness="1" Width="210" Height="15" RadiusX="5"
+                   RadiusY="0" Canvas.Left="20" Canvas.Top="50" />
+        <Rectangle Fill="Black" Width="15" Height="35" RadiusX="2" RadiusY="2" Canvas.Left="25"
+                   Canvas.Top="165">
+            <Rectangle.Effect>
+                <DropShadowEffect BlurRadius="2" Color="Black" Opacity="0.4" />
+            </Rectangle.Effect>
+        </Rectangle>
+        <Rectangle Fill="Black" Width="15" Height="35" RadiusX="2" RadiusY="2" Canvas.Left="210"
+                   Canvas.Top="165">
+            <Rectangle.Effect>
+                <DropShadowEffect BlurRadius="2" Color="Black" Opacity="0.4" />
+            </Rectangle.Effect>
+        </Rectangle>
+        <Ellipse Fill="DarkSlateGray" Stroke="Black" StrokeThickness="1" Width="100" Height="40"
+                 Canvas.Left="75" Canvas.Top="35" />
+        <Ellipse Stroke="Gray" StrokeThickness="1.5" Width="70" Height="25" Canvas.Left="90" Canvas.Top="42.5" />
+        <Ellipse Fill="Black" Width="40" Height="15" Canvas.Left="105" Canvas.Top="47.5" />
+        <Path StrokeThickness="0" Canvas.Left="115" Canvas.Top="15" RenderTransformOrigin="0.5,1">
+            <Path.RenderTransform>
+                <RotateTransform Angle="-10" />
+            </Path.RenderTransform>
+            <Path.Fill>
+                <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
+                    <GradientStop Color="Orange" Offset="0.0" />
+                    <GradientStop Color="OrangeRed" Offset="0.7" />
+                    <GradientStop Color="Red" Offset="1.0" />
+                </LinearGradientBrush>
+            </Path.Fill>
+            <Path.Data>
+                <PathGeometry Figures="M 0,30 Q 5,15 10,30 Q 15,0 20,30 Z" />
+            </Path.Data>
+        </Path>
+        <Path StrokeThickness="0" Canvas.Left="100" Canvas.Top="18" RenderTransformOrigin="0.5,1">
+            <Path.RenderTransform>
+                <RotateTransform Angle="5" />
+            </Path.RenderTransform>
+            <Path.Fill>
+                <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
+                    <GradientStop Color="Yellow" Offset="0.0" />
+                    <GradientStop Color="Orange" Offset="0.6" />
+                    <GradientStop Color="OrangeRed" Offset="1.0" />
+                </LinearGradientBrush>
+            </Path.Fill>
+            <Path.Data>
+                <PathGeometry Figures="M 0,25 Q 4,12 8,25 Q 12,-5 16,25 Z" />
+            </Path.Data>
+        </Path>
+        <Path StrokeThickness="0" Canvas.Left="130" Canvas.Top="20" RenderTransformOrigin="0.5,1">
+            <Path.RenderTransform>
+                <RotateTransform Angle="15" />
+            </Path.RenderTransform>
+            <Path.Fill>
+                <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
+                    <GradientStop Color="Orange" Offset="0.0" />
+                    <GradientStop Color="Red" Offset="1.0" />
+                </LinearGradientBrush>
+            </Path.Fill>
+            <Path.Data>
+                <PathGeometry Figures="M 0,22 Q 3,10 6,22 Q 9,5 12,22 Z" />
+            </Path.Data>
+        </Path>
+        <Ellipse Fill="Black" Stroke="Gray" StrokeThickness="1" Width="20" Height="20" Canvas.Left="215"
+                 Canvas.Top="100">
+            <Ellipse.Effect>
+                <DropShadowEffect BlurRadius="2" Color="Black" Opacity="0.5" />
+            </Ellipse.Effect>
+        </Ellipse>
+        <Rectangle Fill="White" Width="2" Height="5" Canvas.Left="224" Canvas.Top="102"
+                   RenderTransformOrigin="0.5,0.5">
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="-30" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+    </Canvas>
+</UserControl>

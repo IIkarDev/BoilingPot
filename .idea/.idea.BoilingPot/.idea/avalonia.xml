@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="AvaloniaApplication1/App.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Resources/ColorSetsController.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Components/AltPotTheme.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Components/MainPotTheme.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Palettes/BlueAccentPalette.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Palettes/DefaultAccentPalette.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Palettes/GrayAccentPalette.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Palettes/GreenAccentPalette.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Palettes/OrangeAccentPalette.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Palettes/PurpleAccentPalette.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Palettes/RedAccentPalette.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/Palettes/TealAccentPalette.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Resources/TemplatedControl1.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Styles/AltPotStyle.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Styles/AltStoveStyle.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Styles/HeaderContentControlStyle.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Styles/MainPotStyle.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Styles/MainStoveStyle.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/AboutView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/AppComponents/SystemColors.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/CommonView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/AltPotView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/AltStoveView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/BubblePresenter.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/ControlPanel.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/ControlPanelView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/DataPanel.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/DataPanelView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/GeneralSettingsView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/HeaderContentControlStyle.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/HomeView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/MainPotTheme.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/MainPotView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/MainStoveView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/ModelSettingsView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/PotPresenter.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/PotView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/SettingsView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/ShowAboutView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/StovePresenter.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/StoveView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/ThemeSettingsView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/UserControl1.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Components/UserControl2.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/HomeView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/MainScreenView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/MainWindow.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/MolecularView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/Screen1View.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/Screen2View.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="AvaloniaApplication1/Views/SettingsView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/SettingsViews/GeneralSettingsView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/SettingsViews/ModelSettingsView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/SettingsViews/ThemeSettingsView.axaml" value="AvaloniaApplication1/BoilingPot.csproj" />
+        <entry key="AvaloniaApplication1/Views/ShowAboutView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
+        <entry key="BoilingPot/App.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Resources/Components/AltPotTheme.axaml" value="BoilingPot/BoilingPot.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

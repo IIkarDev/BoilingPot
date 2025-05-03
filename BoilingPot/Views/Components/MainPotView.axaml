@@ -1,0 +1,67 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:BoilingPot.ViewModels.Components"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="250"
+             x:Class="BoilingPot.Views.Components.MainPotView"
+             x:DataType="vm:MainPotViewModel">
+
+    <!-- Кастрюля -->
+    <Canvas Width="200" Height="250">
+
+        <Rectangle Fill="DimGray" Width="35" Height="16" RadiusX="6" RadiusY="6" Canvas.Left="5"
+                   Canvas.Top="120" />
+        <Rectangle Fill="Silver" Width="16" Height="50" RadiusX="8" RadiusY="8" Canvas.Left="6" Canvas.Top="84" />
+        <Rectangle Fill="DimGray" Width="35" Height="16" RadiusX="6" RadiusY="6" Canvas.Left="5"
+                   Canvas.Top="80" />
+        <Rectangle Fill="DimGray" Width="35" Height="16" RadiusX="6" RadiusY="6" Canvas.Left="160"
+                   Canvas.Top="120" />
+        <Rectangle Fill="Silver" Width="16" Height="50" RadiusX="8" RadiusY="8" Canvas.Left="178"
+                   Canvas.Top="84" />
+        <Rectangle Fill="DimGray" Width="35" Height="16" RadiusX="6" RadiusY="6" Canvas.Left="160"
+                   Canvas.Top="80" />
+        <Ellipse Stroke="Silver" StrokeThickness="2" Width="140" Height="35" Canvas.Left="30" Canvas.Top="192">
+            <Ellipse.Fill>
+                <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,100%">
+                    <GradientStop Color="DarkGray" Offset="0.1" />
+                    <GradientStop Color="Gray" Offset="1.0" />
+                </LinearGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+        <Border BorderBrush="Silver" BorderThickness="2,2,2,0" Canvas.Left="30" Canvas.Top="50">
+            <Rectangle Name="PotBody" Width="136" Height="158">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="White" Offset="0.0" />
+                        <GradientStop Color="Silver" Offset="0.4" />
+                        <GradientStop Color="Gray" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+        </Border>
+        <Ellipse Stroke="Gray" StrokeThickness="1" Width="140" Height="35" Canvas.Left="30" Canvas.Top="48">
+            <Ellipse.Fill>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="WhiteSmoke" Offset="0.0" />
+                    <GradientStop Color="LightGray" Offset="0.5" />
+                    <GradientStop Color="Silver" Offset="1.0" />
+                </LinearGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+        <Ellipse Fill="LightGray" Stroke="Gray" StrokeThickness="1.5" Width="150" Height="40" Canvas.Left="25"
+                 Canvas.Top="35" />
+        <Ellipse Fill="Black" Width="40" Height="22" Canvas.Left="80" Canvas.Top="24" />
+
+        <!-- *** РАСКОММЕНТИРОВАТЬ И ПРОВЕРИТЬ ПРИВЯЗКУ *** -->
+        <TextBlock x:Name="tb1"
+                   Text="{Binding PotVolumeText}"
+                   FontSize="18"
+                   FontWeight="SemiBold"
+                   Foreground="DarkSlateGray"
+                   TextAlignment="Center"
+                   Width="100"
+                   Canvas.Left="50"
+                   Canvas.Top="120" />
+    </Canvas>
+</UserControl>

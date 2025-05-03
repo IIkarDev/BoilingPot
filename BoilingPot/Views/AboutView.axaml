@@ -1,0 +1,147 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:BoilingPot.ViewModels"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             mc:Ignorable="d"
+             x:Class="BoilingPot.Views.AboutView"
+             x:DataType="vm:MainWindowViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.SectionTitle">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,20,0,8" />
+        </Style>
+        <Style Selector="TextBlock.BodyText">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+        <Style Selector="TextBlock.ItemName">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Margin" Value="0,0,10,0" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <TextBlock Opacity="0.3" Background="#1C1C1C" />
+        <Border Width="600" Height="500"
+                Background="{DynamicResource MainAccentColor}"
+                BorderBrush="{DynamicResource AltAccentColor}"
+                BorderThickness="3"
+                CornerRadius="24">
+
+            <Grid RowDefinitions="Auto,*" ColumnDefinitions="*">
+
+                <ScrollViewer Grid.Row="0" Grid.RowSpan="2"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="24,15,24,24"
+                              Foreground="White">
+                    <StackPanel Spacing="10">
+
+                        <TextBlock Text="Boiling Pot"
+                                   FontSize="32"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Left" Margin="0,0,0,5" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,15">
+                            <TextBlock Text="Версия:" />
+                            <TextBlock Text="1.0.0" />
+                            <TextBlock Text="|" />
+                            <TextBlock Text="Дата:" />
+                            <TextBlock Text="27.04.2025" />
+                        </StackPanel>
+
+                        <TextBlock Classes="SectionTitle" Text="Описание" />
+                        <TextBlock Classes="BodyText">
+                            Интерактивное приложение для визуализации и симуляции
+                            процесса конвекции в жидкостях при различных условиях
+                            нагрева и параметрах системы. Включает схематическое
+                            и упрощенное молекулярное представление процесса.
+                            Разработано с использованием современных UI-технологий.
+                        </TextBlock>
+
+                        <TextBlock Classes="SectionTitle" Text="Разработчики" />
+                        <StackPanel Spacing="4" Margin="10,0,0,0">
+                            <TextBlock Text="Карачебан Д.И." />
+                            <TextBlock Text="Марданов А.С." />
+                            <TextBlock Text="Стацюк Д.С." />
+                        </StackPanel>
+
+                        <TextBlock Classes="SectionTitle" Text="Технологии" />
+                        <TextBlock Text="Основные:" FontWeight="SemiBold" Margin="0,0,0,5" />
+                        <StackPanel Spacing="4" Margin="10,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="ItemName" Text="UI Framework:" />
+                                <TextBlock Text="Avalonia UI" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="ItemName" Text="Стилизация:" />
+                                <TextBlock Text="FluentAvalonia" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="ItemName" Text="Языки:" />
+                                <TextBlock Text="C#, Xaml" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="ItemName" Text="Платформа:" />
+                                <TextBlock Text=".NET 9.0 Preview" />
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Text="Ключевые библиотеки:" FontWeight="SemiBold" Margin="0,10,0,5" />
+                        <StackPanel Spacing="4" Margin="10,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="ItemName" Text="MVVM Toolkit:" />
+                                <TextBlock Text="CommunityToolkit.Mvvm" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="ItemName" Text="Интерактивность:" />
+                                <TextBlock Text="Avalonia.Xaml.Interactivity" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Classes="SectionTitle" Text="Контакты" />
+                        <StackPanel Spacing="5">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Веб-сайт" VerticalAlignment="Center" />
+                                <HyperlinkButton Content="меня любимого" NavigateUri="https://iikardev.com"
+                                                 Foreground="Brown" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Поддержка: " VerticalAlignment="Center" />
+                                <HyperlinkButton Content="iikardev@gmail.com" NavigateUri="mailto:iikardev@gmail.com"
+                                                 Foreground="Brown" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Classes="SectionTitle" Text="Лицензия" />
+                        <TextBlock Classes="BodyText">ПРОПРИЕТАРЩИНА ЗА 20000$ в месяц! ХАХА, испугался? не бойся, я твой друг) Использование приложения регулируется лицензионным соглашением (и моим настроением).</TextBlock>
+
+                        <TextBlock Classes="SectionTitle" Text="Благодарности" />
+                        <TextBlock Classes="BodyText">
+                            - Команде Avalonia за отличный кроссплатформенный фреймворк.<LineBreak />
+                            - Разработчикам FluentAvalonia за реализацию Fluent Design.<LineBreak />
+                            - Команде CommunityToolkit за удобные инструменты MVVM.<LineBreak />
+                        </TextBlock>
+
+                        <TextBlock Text="© 2025 Карачебан Дмитрий / С322 / SUAI. Все права защищены."
+                                   HorizontalAlignment="Center"
+                                   Margin="0,30,0,0" />
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Button Grid.Row="0" Grid.Column="0"
+                        Margin="20"
+                        Classes="CloseButton"
+                        Command="{Binding ShowAboutCommand}"> <!-- !!! Нужна новая команда в VM !!! -->
+                    <ui:SymbolIcon Symbol="Dismiss" FontSize="20" />
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
