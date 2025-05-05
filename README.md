@@ -1,5 +1,6 @@
 # Boiling Pot 🧪🔥
 
+(currently uncomplete)
 A simulation and visualization application for the process of convection in liquids, built using the modern cross-platform UI framework, Avalonia UI. The project demonstrates advanced architectural patterns like MVVM and DI, along with the ability to dynamically change the appearance of UI elements.
 
 
