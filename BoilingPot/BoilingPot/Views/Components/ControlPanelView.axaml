@@ -1,0 +1,159 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:BoilingPot.ViewModels"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="720"
+             x:Class="BoilingPot.Views.Components.ControlPanelView"
+             x:DataType="vm:MainViewModel"
+             Background="{DynamicResource MainAccentColor}">
+    
+    
+    <!-- <Style Selector="ui|NavigationView[IsPaneOpen=False] ui|NavigationViewItem /template/ ui|IconSourceElement"> -->
+    <!--     <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemIconForeground}" /> -->
+    <!-- </Style> -->
+    <!-- Закомментированные стили для :selected состояния (если нужны) -->
+    <!-- <Style Selector="ui|NavigationView[IsPaneOpen=False] ui|NavigationViewItem:selected"> -->
+    <!--     <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundSelected}" /> -->
+    <!-- </Style> -->
+    <!-- <Style Selector="ui|NavigationView[IsPaneOpen=False] ui|NavigationViewItem:selected /template/ ui|IconSourceElement"> -->
+    <!--     <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemIconForegroundSelected}" /> -->
+    <!-- </Style> -->
+    <!-- <Style Selector="ui|NavigationView[IsPaneOpen=True] ui|NavigationViewItem /template/ ui|IconSourceElement"> -->
+    <!--     <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" /> -->
+    <!-- </Style> -->
+    <!-- Selector="ui|NavigationView[IsPaneOpen=True] ui|NavigationView"> -->
+
+
+    <ui:NavigationView x:Name="NavView"
+                       IsPaneOpen="False"
+                       IsSettingsVisible="False"
+                       PaneDisplayMode="LeftCompact"
+                       OpenPaneLength="160"
+                       CompactPaneLength="48"
+                       SelectedItem="{Binding SelectedNavItem, Mode=TwoWay}">
+
+        <ui:NavigationView.MenuItems>
+            <ui:NavigationViewItem Content="Домой" Tag="Home" 
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowHomeNavItem}">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Home" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+            
+            <ui:NavigationViewItem Content="Данные" Tag="Data" 
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.IsDataPanelOnLeft}">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="ChevronLeft" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+
+            <ui:NavigationViewItem Content="Загрузить" Tag="Load"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowLoadNavItem}">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Open" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+
+            <ui:NavigationViewItem Content="Сохранить" Tag="Save"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowSaveNavItem}">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Bookmark" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+
+            <ui:NavigationViewItem Content="Настройки" Tag="Settings"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowSettingsNavItem}">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Settings" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+
+        </ui:NavigationView.MenuItems>
+
+        <ui:NavigationView.FooterMenuItems>
+            <ui:NavigationViewItem Content="О программе" Tag="About"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowAboutNavItem}">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Star" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+
+            <ui:NavigationViewItem Tag="Exit" Content="Выход"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowExitNavItem}">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Cancel" />
+                </ui:NavigationViewItem.IconSource>
+                <ToolTip.Tip>Закрыть приложение</ToolTip.Tip>
+            </ui:NavigationViewItem>
+        </ui:NavigationView.FooterMenuItems>
+
+
+        <Grid Width="232">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          AllowAutoHide="True">
+                <StackPanel Spacing="12" Margin="16,8,16, 56">
+                    <StackPanel Spacing="8" Margin="0,4,0,0">
+
+                        <HeaderedContentControl Header="Скорость процессов:">
+                            <StackPanel>
+                                <Slider Minimum="0" Maximum="100" Value="{Binding ProcessSpeed}"
+                                        TickFrequency="10" TickPlacement="BottomRight" />
+                                <TextBlock Text="{Binding ProcessSpeed, StringFormat=Скорость 0 ед}"
+                                           HorizontalAlignment="Right" />
+                            </StackPanel>
+                        </HeaderedContentControl>
+
+                        <HeaderedContentControl Header="Нагрев (пламя):" Margin="0,12,0,0">
+                            <StackPanel>
+                                <Slider Minimum="0" Maximum="5" Value="{Binding FlameLevel}"
+                                        TickFrequency="1" TickPlacement="BottomRight" />
+                                <TextBlock Text="{Binding FlameLevel,  StringFormat=Уровень 0}"
+                                           HorizontalAlignment="Right" />
+                            </StackPanel>
+                        </HeaderedContentControl>
+
+                        <Button Content="Охладить" Command="{Binding CoolDownCommand}"
+                                HorizontalAlignment="Stretch" Margin="0,16,0,0"
+                                Background="{DynamicResource MainAccentColor}" />
+                    </StackPanel>
+
+                    <StackPanel Margin="0,24, 0, 0">
+                        <HeaderedContentControl Header="Объем:">
+                            <ComboBox ItemsSource="{Binding VolumeOptions}"
+                                      SelectedItem="{Binding SelectedVolume}"
+                                      HorizontalAlignment="Stretch" Background="{DynamicResource MainAccentColor}" />
+                        </HeaderedContentControl>
+
+                        <HeaderedContentControl Header="Тип жидкости:" Margin="0,12,0,0">
+                            <ComboBox ItemsSource="{Binding LiquidTypes}"
+                                      SelectedItem="{Binding SelectedLiquidType}"
+                                      HorizontalAlignment="Stretch" Background="{DynamicResource MainAccentColor}" />
+                        </HeaderedContentControl>
+                    </StackPanel>
+
+                    <HeaderedContentControl Header="Вид отображения" Margin="0,16,0,0">
+                        <StackPanel Spacing="8" Margin="0,4,0,0">
+                            <RadioButton Content="Обычный вид"
+                                         GroupName="ViewType"
+                                         IsChecked="{Binding IsCommonViewSelected}" />
+                            <RadioButton Content="Молекулярный вид"
+                                         GroupName="ViewType"
+                                         IsChecked="{Binding !IsCommonViewSelected}"/>
+
+                            <Button Content="Показать хим. структуру"
+                                    HorizontalAlignment="Left"
+                                    IsVisible="{Binding !IsCommonViewSelected}"
+                                    Command="{Binding ShowStructureCommand}"
+                                    Margin="0,8,0,0"
+                                    Background="{DynamicResource MainAccentColor}" />
+
+                        </StackPanel>
+                    </HeaderedContentControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </ui:NavigationView>
+
+</UserControl>

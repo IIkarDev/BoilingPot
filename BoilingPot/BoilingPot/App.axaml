@@ -1,0 +1,61 @@
+<!-- App.axaml -->
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:BoilingPot" 
+             xmlns:conv="using:BoilingPot.Converters"
+             xmlns:styling="clr-namespace:FluentAvalonia.Styling;assembly=FluentAvalonia"
+             x:Class="BoilingPot.App"
+             RequestedThemeVariant="Light"> <!-- Установим светлую тему по умолчанию -->
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Регистрация конвертера -->
+            <conv:StringEqualsConverter x:Key="StringEqualsConverter"/>
+
+            <!-- Подключаем наши словари с цветами акцентов -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://BoilingPot/Resources/Palettes/DefaultAccentPalette.axaml"/>
+                <!-- При необходимости можно загружать другие палитры динамически -->
+            </ResourceDictionary.MergedDictionaries>
+
+             <!-- Определения кистей для тем (как было у вас) -->
+             <!-- Используем DynamicResource для ссылки на цвета из палитр -->
+             <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="ThemeAccentColor" Color="{DynamicResource LightAccentColor}"/>
+                    <!-- Добавьте другие ресурсы для светлой темы, если нужно -->
+                     <SolidColorBrush x:Key="ThemeBackgroundColor" Color="WhiteSmoke"/>
+                     <SolidColorBrush x:Key="ThemeForegroundColor" Color="#1C1C1C"/>
+                     <Color x:Key="ThemeLogoColor">#1C1C1C</Color>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="ThemeAccentColor" Color="{DynamicResource DarkAccentColor}"/>
+                    <!-- Добавьте другие ресурсы для темной темы, если нужно -->
+                    <SolidColorBrush x:Key="ThemeBackgroundColor" Color="#1C1C1C"/>
+                    <SolidColorBrush x:Key="ThemeForegroundColor" Color="WhiteSmoke"/>
+                    <Color x:Key="ThemeLogoColor">WhiteSmoke</Color>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <!-- Стили приложения -->
+    <Application.Styles>
+        <!-- Базовая тема Fluent -->
+        <!-- <FluentTheme /> -->
+        <!-- Если используете FluentAvalonia: -->
+        <styling:FluentAvaloniaTheme PreferUserAccentColor="True"/>
+
+        <!-- Подключаем глобальные стили, если есть -->
+         <StyleInclude Source="avares://BoilingPot/Styles/HeaderContentControlStyle.axaml"/>
+         <!-- <StyleInclude Source="avares://BoilingPot/Styles/ButtonStyles.axaml"/> -->
+    </Application.Styles>
+
+    
+    
+    <!-- <Application.DataTemplates> -->
+    <!--     <local:ViewLocator/> -->
+    <!-- </Application.DataTemplates> -->
+
+</Application>

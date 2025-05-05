@@ -1,0 +1,120 @@
+﻿<!-- Views/SettingsView.axaml -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:BoilingPot.ViewModels"
+             xmlns:v="using:BoilingPot.Views.Components"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:settingsViews="using:BoilingPot.Views.SettingsViews"
+             xmlns:settingsViewModels="using:BoilingPot.ViewModels.SettingsViewModels"
+             mc:Ignorable="d"
+             x:Class="BoilingPot.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"> <!-- DataContext - SettingsViewModel -->
+
+    <Design.DataContext>
+        <vm:SettingsViewModel />
+    </Design.DataContext>
+
+        <!-- DataTemplates для секций настроек -->
+    <UserControl.DataTemplates>
+        <DataTemplate DataType="{x:Type settingsViewModels:GeneralSettingsViewModel}">
+            <settingsViews:GeneralSettingsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type settingsViewModels:ThemeSettingsViewModel}">
+            <settingsViews:ThemeSettingsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type settingsViewModels:ModelSettingsViewModel}">
+            <settingsViews:ModelSettingsView />
+        </DataTemplate>
+    </UserControl.DataTemplates>
+
+    <!-- Стили для кнопки закрытия (вынести глобально) -->
+    <UserControl.Styles>
+        <Style Selector="Button.CloseButton">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.CloseButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        </Style>
+        <Style Selector="Button.CloseButton:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Главный Grid для центрирования и наложения -->
+    <Grid>
+        <!-- Полупрозрачный темный фон под панелью настроек -->
+        <TextBlock Opacity="0.3" Background="#1C1C1C" />
+
+        <!-- Основная панель с рамкой и скруглением -->
+        <Border Width="600" Height="500"
+                Background="{DynamicResource MainAccentColor}"
+                BorderBrush="{DynamicResource AltAccentColor}"
+                BorderThickness="3"
+                CornerRadius="24"
+                HorizontalAlignment="Center" VerticalAlignment="Center"> <!-- Центрируем панель -->
+
+            <Grid RowDefinitions="Auto,*" ColumnDefinitions="*"> <!-- Grid для NavigationView и кнопки -->
+
+                <!-- NavigationView для секций настроек -->
+                <ui:NavigationView Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                   IsBackButtonVisible="False"
+                                   IsSettingsVisible="False"
+                                   PaneDisplayMode="Left"
+                                   IsPaneOpen="True"
+                                   Margin="8"
+                                   CornerRadius="8"
+                                   OpenPaneLength="180"
+                                   SelectedItem="{Binding SelectedNavItem, Mode=TwoWay}"
+                                   Background="{DynamicResource MainAccentColor}">
+
+                    <ui:NavigationView.MenuItems>
+                        <ui:NavigationViewItem Content="Общие" Tag="General">
+                            <ui:NavigationViewItem.IconSource>
+                                <ui:SymbolIconSource Symbol="Setting" />
+                            </ui:NavigationViewItem.IconSource>
+                        </ui:NavigationViewItem>
+                        <ui:NavigationViewItem Content="Темы" Tag="Themes">
+                            <ui:NavigationViewItem.IconSource>
+                                <ui:SymbolIconSource Symbol="Highlight" />
+                            </ui:NavigationViewItem.IconSource>
+                        </ui:NavigationViewItem>
+                        <ui:NavigationViewItem Content="Модели" Tag="Models">
+                            <ui:NavigationViewItem.IconSource>
+                                <ui:SymbolIconSource Symbol="AllApps" />
+                            </ui:NavigationViewItem.IconSource>
+                        </ui:NavigationViewItem>
+                    </ui:NavigationView.MenuItems>
+
+                    <!-- Область для контента выбранной секции (скроллер внутри NavigationView) -->
+                    <ScrollViewer Margin="5,0,0,0" CornerRadius="8"> <!-- Скругление скроллера -->
+                         <ContentControl Content="{Binding CurrentSettingSectionViewModel}"/>
+                    </ScrollViewer>
+
+                </ui:NavigationView>
+
+                <!-- Кнопка закрытия -->
+                <Button Grid.Row="0" Grid.Column="0"
+                        Margin="20"
+                        Classes="CloseButton"
+                        Command="{Binding CloseSettingsCommand}"> <!-- Привязана к команде в SettingsViewModel -->
+                    <ui:SymbolIcon Symbol="Dismiss" FontSize="20" />
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

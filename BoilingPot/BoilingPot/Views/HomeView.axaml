@@ -1,0 +1,183 @@
+﻿<!-- Views/HomeView.axaml -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:BoilingPot.ViewModels"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:media="using:Avalonia.Media"
+             xmlns:local="using:BoilingPot.Views.Components"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="BoilingPot.Views.HomeView"
+             x:DataType="vm:MainViewModel">
+
+    <UserControl.Styles>
+        <!-- Стиль для волн (не менялся) -->
+        <Style Selector="Path.Wave1">
+            <Setter Property="Opacity" Value="0.6" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Style.Animations>
+                <Animation Duration="0:0:11" FillMode="Forward" IterationCount="Infinite" PlaybackDirection="Alternate"
+                           Easing="CubicEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Fill">
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#8B0000" Offset="-1.0" />
+                                <GradientStop Color="#A0522D" Offset="-0.2" />
+                                <GradientStop Color="#5D4037" Offset="0.5" />
+                                <GradientStop Color="Transparent" Offset="1.5" />
+                            </LinearGradientBrush>
+                        </Setter>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Fill">
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#8B0000" Offset="0.0" />
+                                <GradientStop Color="#A0522D" Offset="0.8" />
+                                <GradientStop Color="#5D4037" Offset="1.5" />
+                                <GradientStop Color="Transparent" Offset="2.5" />
+                            </LinearGradientBrush>
+                        </Setter>
+                    </KeyFrame>
+                </Animation>
+                <Animation Duration="0:0:9" FillMode="Forward" IterationCount="Infinite" PlaybackDirection="Alternate"
+                           Easing="SineEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="(Canvas.Left)" Value="-50" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="(Canvas.Left)" Value="50" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <Style Selector="Path.Wave2">
+            <Setter Property="Opacity" Value="0.7" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Style.Animations>
+                <Animation Duration="0:0:7" FillMode="Forward" IterationCount="Infinite" PlaybackDirection="Alternate"
+                           Easing="SineEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Fill">
+                            <LinearGradientBrush StartPoint="0%,100%" EndPoint="100%,0%">
+                                <GradientStop Color="#FF6347" Offset="-1.5" />
+                                <GradientStop Color="{DynamicResource DarkAccentColor}" Offset="-0.7" />
+                                <GradientStop Color="{DynamicResource MainAccentColor}" Offset="0.2" />
+                                <GradientStop Color="Transparent" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Setter>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Fill">
+                            <LinearGradientBrush StartPoint="0%,100%" EndPoint="100%,0%">
+                                <GradientStop Color="#FF6347" Offset="-0.5" />
+                                <GradientStop Color="{DynamicResource LightAccentColor}" Offset="0.0" />
+                                <GradientStop Color="{DynamicResource MainAccentColor}" Offset="0.5" />
+                                <GradientStop Color="Transparent" Offset="1.5" />
+                            </LinearGradientBrush>
+                        </Setter>
+                    </KeyFrame>
+                </Animation>
+                <Animation Duration="0:0:18" FillMode="Forward" IterationCount="Infinite" PlaybackDirection="Alternate"
+                           Easing="CubicEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="(Canvas.Left)" Value="30" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="(Canvas.Left)" Value="-30" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Стиль для кнопок главного меню (скопирован из предыдущих примеров) -->
+        <!-- Можно вынести в глобальные стили -->
+        <Style Selector="Button.MainMenuButton">
+            <Setter Property="MinWidth" Value="200" />
+            <Setter Property="Padding" Value="15,10" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+            <Setter Property="Background" Value="{DynamicResource ButtonBackground}" />
+            <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+            <Setter Property="BorderThickness" Value="{DynamicResource ButtonBorderThemeThickness}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Effect">
+                <media:DropShadowEffect BlurRadius="8" Color="Black" Opacity="0.3" />
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.MainMenuButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}" />
+        </Style>
+        <Style Selector="Button.MainMenuButton:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPressed}" />
+        </Style>
+        <Style Selector="TextBlock.Logo">
+            <Setter Property="Foreground">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="{DynamicResource AltAccentColor}" Offset="0.0" />
+                    <GradientStop Color="{DynamicResource MainAccentColor}" Offset="0.3" />
+                    <GradientStop Color="{DynamicResource ThemeLogoColor}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Главный Grid для содержимого -->
+    <Grid>
+        <!-- Слой 1: Анимированные Волны (Фон) -->
+        <Canvas IsHitTestVisible="False">
+            <!-- Волны -->
+            <Path x:Name="Wave1Path" Classes="Wave1" Canvas.Left="0">
+                <Path.Data>
+                    <PathGeometry Figures="M -100,600 Q 300,450 700,550 T 1400,550 T 1600,400 L 1600,900 L -100,900 Z" />
+                </Path.Data>
+            </Path>
+            <Path x:Name="Wave2Path" Classes="Wave2" Canvas.Left="0">
+                <Path.Data>
+                    <PathGeometry Figures="M -100,550 Q 400,650 800,500 T 1400,400 T 1600,550 L 1600,900 L -100,900 Z" />
+                </Path.Data>
+            </Path>
+        </Canvas>
+
+        <!-- Слой 2: Основной Контент (Заголовок и Кнопки) -->
+        <Grid RowDefinitions="Auto,*,Auto">
+
+            <!-- Заголовок приложения -->
+            <TextBlock Grid.Row="0" Text="Boiling Pot" Classes="Logo"
+                       FontSize="72" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Top"
+                       Margin="0,60,0,0">
+                <TextBlock.Effect>
+                    <media:DropShadowEffect BlurRadius="15" Color="{DynamicResource MainAccentColor}" Opacity="0.6" />
+                </TextBlock.Effect>
+            </TextBlock>
+
+            <!-- Кнопки главного меню -->
+            <StackPanel Grid.Row="1" Spacing="20"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- Привязка команд к MainViewModel -->
+                <Button Content="Начать" Classes="accent MainMenuButton" Command="{Binding GoToCommonCommand}" />
+                <Button Content="Загрузить" Classes="MainMenuButton" Command="{Binding LoadFileCommand}" />
+                <Button Content="Настройки" Classes="MainMenuButton" Command="{Binding ShowSettingsCommand}" />
+                <Button Content="О программе" Classes="MainMenuButton" Command="{Binding ShowAboutCommand}" />
+            </StackPanel>
+
+            <!-- Кнопка Выход (в углу) -->
+            <Button Grid.Row="2" Grid.Column="0"
+                    Classes="subtle" 
+                    Margin="20"
+                    HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                    Command="{Binding ExitApplicationCommand}">
+                <ui:SymbolIcon Symbol="Dismiss" FontSize="20"/>
+                <ToolTip.Tip>Закрыть приложение</ToolTip.Tip>
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

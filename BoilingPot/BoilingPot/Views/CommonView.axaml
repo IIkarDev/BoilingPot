@@ -1,0 +1,59 @@
+﻿<!-- Views/CommonView.axaml -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:BoilingPot.ViewModels"
+             xmlns:comp="using:BoilingPot.Views.Components" 
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="BoilingPot.Views.CommonView"
+             x:DataType="vm:CommonViewModel"> <!-- DataContext - CommonViewModel -->
+
+    <Design.DataContext>
+        <!-- Для дизайнера - создаем фиктивный CommonViewModel -->
+        <vm:CommonViewModel/>
+    </Design.DataContext>
+
+    <!-- Стили для этого View, если нужны -->
+    <UserControl.Styles>
+        <!-- Например, стиль для фона или специфичных элементов -->
+        <Style Selector="Border.CommonBackground">
+            <Setter Property="Background" Value="LightBlue"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Основной контейнер CommonView -->
+    <Border Classes="CommonBackground"> <!-- Пример применения класса стиля -->
+        <StackPanel Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock FontSize="24" FontWeight="Bold" Text="Симуляция"/>
+            <TextBlock Text="Текущее состояние системы..."/>
+
+            <!-- Пример кнопки, обновляющей ViewModel кастрюли -->
+            <Button Content="Установить Объем 1.5л" Command="{Binding UpdatePotVolumeCommand}" CommandParameter="1.5 литра"/>
+
+            <!-- !!! Отображаем ПЛЕЙСХОЛДЕР Кастрюли !!! -->
+            <!-- DataContext этого плейсхолдера привязан к PotViewModelInstance в ModelSettingsViewModel -->
+            <!-- Внешний вид этого плейсхолдера будет определяться динамически применяемой темой -->
+            <!-- !!! ВАЖНО: ДАЕМ ИМЯ ДЛЯ ПОИСКА В CodeBehind !!! -->
+            <!-- <comp:PotPresenter x:Name="PotPresenter"  -->
+            <!--                    DataContext="{Binding ModelVm.PotViewModelInstance}" -->
+            <!--                    Margin="0,10,0,0"/> -->
+
+            <!-- Плита (используем Presenter, если тоже будет меняться внешний вид) -->
+            <!-- Если внешний вид плиты СТАТИЧЕСКИЙ, можно оставить как есть: -->
+             <!-- <comp:MainStoveView Margin="0,10,0,0"/> -->
+            <!-- Если будет альтернативный вид, используем Presenter и аналогичную логику применения стиля: -->
+            <!-- <comp:StovePresenter x:Name="StovePresenter" DataContext="{Binding ModelVm.StoveViewModelInstance}" Margin="0,10,0,0"/> -->
+
+            <!-- Пузыри (используем Presenter или ItemsControl с ItemTemplate) -->
+            <!-- Если пузыри рисуются как набор элементов в ItemsControl, логика темы будет в ItemTemplate -->
+            <!-- <comp:BubblePresenter x:Name="BubblePresenter" DataContext="{Binding ModelVm.BubbleViewModelInstance}" Margin="0,10,0,0"/> -->
+            <!-- Если пузыри - это ItemsControl, то он здесь: -->
+             <!-- <ItemsControl ItemsSource="{Binding ModelVm.MolecularViewModelInstance.Bubbles}" .../> -->
+
+
+        </StackPanel>
+    </Border>
+</UserControl>
