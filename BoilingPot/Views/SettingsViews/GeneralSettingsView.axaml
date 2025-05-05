@@ -2,15 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:BoilingPot.ViewModels"
-             xmlns:settingsViewModels="clr-namespace:BoilingPot.ViewModels.SettingsViewModels"
+             xmlns:vm="using:BoilingPot.ViewModels.SettingsViewModels"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="BoilingPot.Views.SettingsViews.GeneralSettingsView"
-             x:DataType="settingsViewModels:GeneralSettingsViewModel"
-             Padding="10"> <!-- Добавим общий отступ -->
+             x:DataType="vm:GeneralSettingsViewModel" 
+             Padding="10">
 
     <Design.DataContext>
-        <settingsViewModels:GeneralSettingsViewModel />
+        <vm:GeneralSettingsViewModel />
     </Design.DataContext>
 
     <UserControl.Styles>
@@ -24,58 +24,58 @@
          </Style>
     </UserControl.Styles>
 
-    <StackPanel Spacing="8">
-        <TextBlock Classes="SectionTitle" Text="Общие Настройки" />
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="8">
+            <TextBlock Classes="SectionTitle" Text="Общие Настройки" />
 
-        <!-- Язык -->
-        <TextBlock Classes="SettingHeader" Text="Язык интерфейса" />
-        <ComboBox ItemsSource="{Binding LanguageOptions}"
-                  SelectedItem="{Binding SelectedLanguage}"
-                  HorizontalAlignment="Stretch" />
-        <TextBlock Classes="Subtle" Text="Требуется перезапуск приложения для применения" />
+            <!-- Язык -->
+            <TextBlock Classes="SettingHeader" Text="Язык интерфейса" />
+            <ComboBox ItemsSource="{Binding LanguageOptions}"
+                      SelectedItem="{Binding SelectedLanguage}"
+                      HorizontalAlignment="Stretch" />
+            <TextBlock Classes="Subtle" Text="Требуется перезапуск приложения для применения" />
 
-        <!-- Панель данных -->
-        <TextBlock Classes="SettingHeader" Text="Панель данных" />
+            <!-- Панель данных -->
+            <TextBlock Classes="SettingHeader" Text="Панель данных" />
 
-        <HeaderedContentControl Header="Отображать кнопку вызова панели">
-            <ToggleSwitch
-                IsEnabled="{Binding ShowDataPanelButton}"
-                OnContent="Вкл" OffContent="Выкл" />
-        </HeaderedContentControl>
+            <HeaderedContentControl Header="Отображать кнопку вызова панели">
+                <ToggleSwitch
+                    IsChecked="{Binding ShowDataPanelButton}"
+                    OnContent="Вкл" OffContent="Выкл" />
+            </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Положение кнопки вызова панели">
-            <ComboBox
-                ItemsSource="{Binding PositionOptions}"
-                SelectedItem="{Binding DataPanelButtonPosition}"
-                IsEnabled="{Binding ShowDataPanelButton}"
-                HorizontalAlignment="Stretch" />
-        </HeaderedContentControl>
+            <HeaderedContentControl Header="Положение кнопки вызова панели">
+                <ComboBox
+                    ItemsSource="{Binding PositionOptions}"
+                    SelectedItem="{Binding SelectedDataPanelButtonPosition}"
+                    IsEnabled="{Binding ShowDataPanelButton}"
+                    HorizontalAlignment="Stretch" />
+            </HeaderedContentControl>
 
-        <HeaderedContentControl Header="Разместить панель данных слева">
-            <ToggleSwitch
-                ToolTip.Tip="По умолчанию панель данных справа"
-                IsEnabled="{Binding IsDataPanelOnLeft}"
-                OnContent="Слева" OffContent="Справа" />
-        </HeaderedContentControl>
+            <HeaderedContentControl Header="Разместить панель данных слева">
+                <ToggleSwitch
+                    ToolTip.Tip="По умолчанию панель данных справа"
+                    IsChecked="{Binding IsDataPanelOnLeft}"
+                    OnContent="Слева" OffContent="Справа" />
+            </HeaderedContentControl>
 
-        <!-- Отображение элементов навигации -->
-        <TextBlock Classes="SettingHeader" Text="Элементы панели навигации" />
-        <StackPanel Spacing="5" Margin="10,0,0,0">
-            <!-- Используем WrapPanel для компактности, если их много -->
-            <!-- Или просто StackPanel -->
-            <Grid>
-                <StackPanel Grid.Column="0">
-                    <ToggleSwitch Content="Домой"  IsChecked="{Binding ShowHomeNavItem}" />
-                    <ToggleSwitch Content="Загрузить" IsChecked="{Binding ShowLoadNavItem}" />
-                    <ToggleSwitch Content="Сохранить" IsChecked="{Binding ShowSaveNavItem}" /> 
-                </StackPanel>
-                <StackPanel Grid.Column="1" Margin="160,0,0,0">
-                    <ToggleSwitch Content="Настройки" IsChecked="{Binding ShowSettingsNavItem}"/>
-                    <ToggleSwitch Content="О программе" IsChecked="{Binding ShowAboutNavItem}"/>
-                    <ToggleSwitch Content="Выход" IsChecked="{Binding ShowExitNavItem}"/>
-                </StackPanel>
-            </Grid>
+            <!-- Отображение элементов навигации -->
+            <TextBlock Classes="SettingHeader" Text="Элементы панели навигации" />
+            <StackPanel Spacing="5" Margin="10,0,0,0">
+                <Grid ColumnDefinitions="*,*"> <!-- Используем Grid -->
+                    <StackPanel Grid.Column="0" Spacing="5">
+                        <ToggleSwitch Content="Домой" IsChecked="{Binding ShowHomeNavItem}" />
+                        <ToggleSwitch Content="Загрузить" IsChecked="{Binding ShowLoadNavItem}" />
+                        <ToggleSwitch Content="Сохранить" IsChecked="{Binding ShowSaveNavItem}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="5">
+                        <ToggleSwitch Content="Настройки" IsChecked="{Binding ShowSettingsNavItem}" />
+                        <ToggleSwitch Content="О программе" IsChecked="{Binding ShowAboutNavItem}" />
+                        <ToggleSwitch Content="Выход" IsChecked="{Binding ShowExitNavItem}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
         </StackPanel>
-
-    </StackPanel>
+    </ScrollViewer>
 </UserControl>

@@ -1,247 +1,174 @@
-﻿using System;
+﻿using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using System;
+using System.Data.SqlTypes;
+using System.Diagnostics;
+using System.Reactive; 
+using Avalonia.Controls;
+using BoilingPot.Services;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
-using BoilingPot.ViewModels.SettingsViewModels;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using FluentAvalonia.UI.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using Avalonia.Threading;
+using FluentAvalonia.UI.Controls;
 
-namespace BoilingPot.ViewModels;
-
-public partial class MainWindowViewModel : ViewModelBase
+namespace BoilingPot.ViewModels
 {
-    private readonly IServiceProvider _serviceProvider;
-    public SettingsViewModel SettingsVm { get; }
-    private readonly GeneralSettingsViewModel _generalSettings;
-
-    // --- Опционально: раскомментируйте для динамической видимости меню ---
-    // [ObservableProperty] private bool _showHomeNavItem = true;
-    // [ObservableProperty] private bool _showLoadNavItem = true;
-    // [ObservableProperty] private bool _showSaveNavItem = true;
-    // [ObservableProperty] private bool _showAboutNavItem = true;
-    // [ObservableProperty] private bool _showSettingsNavItem = true;
-    // [ObservableProperty] private bool _showExitNavItem = true;
-    // --- Конец опционального блока ---
-
-    [ObservableProperty] private object? _selectedNavigationViewItem;
-    [ObservableProperty] private bool _isShowingAbout = false;
-    [ObservableProperty] private bool _isShowingDataPanel = false;
-    [ObservableProperty] private ViewModelBase _currentView;
-
-    [ObservableProperty] private int _flameLevel = 1;
-    [ObservableProperty] private int _processSpeed = 1;
-    [ObservableProperty] private string? _selectedLiquidType;
-    [ObservableProperty] private string? _selectedVolume;
-    [ObservableProperty] private string? _volumeText; // Оставляем для ComboBox или прямого ввода
-
-    // Флаги для управления состоянием UI (например, какой вид выбран)
-    [ObservableProperty] private bool _isHomeViewSelected;
-    [ObservableProperty] private bool _isCommonViewSelected;
-    [ObservableProperty] private bool _isMolecularViewSelected;
-    // Рекомендуется удалить это свойство и использовать конвертер в XAML
-    [ObservableProperty] private bool _notIsHomeViewSelected; 
-
-    public MainWindowViewModel(IServiceProvider serviceProvider)
+    public partial class MainViewModel : ViewModelBase
     {
-        _serviceProvider = serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IThemeLoaderService _themeLoader; 
 
-        // Получаем зависимости через DI
-        SettingsVm = _serviceProvider.GetRequiredService<SettingsViewModel>();
-        // Устанавливаем начальное представление
-        CurrentView = _serviceProvider.GetRequiredService<HomeViewModel>();
-        IsHomeViewSelected = true;
-        NotIsHomeViewSelected = !IsHomeViewSelected; // Или удалите эту строку
-    }
+        [Reactive] public int FlameLevel { get; set; }
+        [Reactive] public string ProcessSpeed { get; set; }
+        public string[] VolumeOptions { get; }
+        [Reactive] public object? SelectedVolume { get; set; }
+        public string[] LiquidTypes { get; }
+        [Reactive] public object? SelectedLiquidType { get; set; }
+        [Reactive] public NavigationViewItem SelectedNavItem { get; set; }
+        [Reactive] public ViewModelBase CurrentViewModel { get; private set; }
+        [Reactive] public Control? DynamicViewContent { get; private set; } 
+        [Reactive] public bool IsDynamicViewActive { get; private set; }
 
-    [RelayCommand]
-    private void NavigateToHomeView()
-    {
-        // Получаем HomeViewModel из DI контейнера
-        CurrentView = _serviceProvider.GetRequiredService<HomeViewModel>();
-        IsHomeViewSelected = true;
-        IsCommonViewSelected = false;
-        IsMolecularViewSelected = false;
-        NotIsHomeViewSelected = !IsHomeViewSelected; // Обновляем (или удаляем)
+        // Флаги видимости панелей
+        [Reactive] public bool IsShowingSettings { get; set; }
+        [Reactive] public bool IsShowingAbout { get; set; }
+        [Reactive] public bool IsShowingDataPanel { get; set; }
+
+        // Ссылка на SettingsViewModel (получаем из DI)
+        public SettingsViewModel SettingsVM { get; }
+
+        // --- Команды ---
+        public ReactiveCommand<Unit, Unit> CoolDownCommand { get; }
+        public ReactiveCommand<Unit, Unit> ShowStructureCommand { get; }
+        public ReactiveCommand<Unit, Unit> GoToHomeCommand { get; }
+        public ReactiveCommand<Unit, Unit> GoToCommonCommand { get; }
+        public ReactiveCommand<Unit, Unit> GoToMolecularCommand { get; }
         
-        // Возможно, потребуется передать какие-то данные в HomeViewModel?
-        // if (CurrentView is HomeViewModel homeVm) { /* ... */ }
-    }
+        public ReactiveCommand<Unit, Unit> LoadDynamicThemeCommand { get; } // Команда теперь только в ModelSettingsVM
+        public ReactiveCommand<Unit, Unit> LoadFileCommand { get;  }
+        public ReactiveCommand<Unit, Unit> ShowSettingsCommand { get; }
+        public ReactiveCommand<Unit, Unit> ShowAboutCommand { get; }
+        public ReactiveCommand<Unit, Unit> ShowDataPanelCommand { get; }
+        public ReactiveCommand<Unit, Unit> ExitApplicationCommand { get; }
 
-    // Обновленный обработчик изменения SelectedVolume
-    partial void OnSelectedVolumeChanged(string? value)
-    {
-        // Обновляем и текстовое поле, если оно используется отдельно
-        VolumeText = value; 
-        UpdatePotVolumeInCommonViewModel(value);
-    }
+        // Переключатель состояния Home/NotHome (для IsVisible в MainWindow)
+        // Используем ObservableAsPropertyHelper для создания вычисляемого свойства
+        private readonly ObservableAsPropertyHelper<bool> _isHomeViewSelectedHelper;
+        private readonly ObservableAsPropertyHelper<bool> _isCommonViewSelectedHelper;
 
-    // Обновленный обработчик изменения VolumeText (если текст можно менять напрямую)
-    partial void OnVolumeTextChanged(string? value)
-    {
-         UpdatePotVolumeInCommonViewModel(value);
-    }
-    
-    // При навигации к CommonView, также обновим объем, если он уже выбран
-    [RelayCommand]
-    private void NavigateToCommonView()
-    {
-        var commonVm = _serviceProvider.GetRequiredService<CommonViewModel>();
-        // Передаем текущее значение объема ПЕРЕД установкой CurrentView
-        commonVm.UpdatePotVolume(VolumeText); 
-        CurrentView = commonVm;
+        public bool IsHomeViewSelected => _isHomeViewSelectedHelper.Value;
+        [Reactive] public bool IsCommonViewSelected { get; set; }
 
-        IsHomeViewSelected = false;
-        IsCommonViewSelected = true;
-        IsMolecularViewSelected = false;
-        NotIsHomeViewSelected = !IsHomeViewSelected; 
-    }
-
-    [RelayCommand]
-    private void NavigateToMolecularView()
-    {
-        // Получаем MolecularViewModel из DI контейнера
-        CurrentView = _serviceProvider.GetRequiredService<MolecularViewModel>();
-        IsHomeViewSelected = false;
-        IsCommonViewSelected = false;
-        IsMolecularViewSelected = true;
-        NotIsHomeViewSelected = !IsHomeViewSelected; // Обновляем (или удаляем)
-
-        // Возможно, потребуется передать какие-то данные в MolecularViewModel?
-        // if (CurrentView is MolecularViewModel molVm) { /* ... */ }
-    }
-
-    [RelayCommand]
-    private void Start()
-    {
-        // Переходим на CommonView при старте (как было в оригинальном коде)
-        NavigateToCommonViewCommand.Execute(null);
-    }
-
-    [RelayCommand]
-    private void ShowDataPanel()
-    {
-        IsShowingDataPanel = !IsShowingDataPanel;
-    }
-
-    [RelayCommand]
-    private void ShowAbout()
-    {
-        IsShowingAbout = !IsShowingAbout;
-    }
-
-    partial void OnSelectedNavigationViewItemChanged(object? value)
-    {
-        if (value is NavigationViewItem selectedItem && selectedItem.Tag is string tag)
+        public MainViewModel(IServiceProvider serviceProvider, IThemeLoaderService themeLoader, SettingsViewModel settingsViewModel)
         {
-            switch (tag)
+            _serviceProvider = serviceProvider;
+            _themeLoader = themeLoader;
+            SettingsVM = settingsViewModel; // Получаем SettingsVM из DI
+
+            Debug.WriteLine(">>> MainViewModel СОЗДАН (RxUI)");
+
+            // --- Вычисляемые свойства для видимости ---
+            // Когда меняется CurrentViewModel, пересчитываем IsHomeViewSelected
+            _isHomeViewSelectedHelper = this.WhenAnyValue(x => x.CurrentViewModel)
+                                            .Select(vm => vm is HomeViewModel) // true, если текущий VM - HomeViewModel
+                                            .ToProperty(this, x => x.IsHomeViewSelected); // Преобразуем в свойство
+            //
+            // _isCommonViewSelectedHelper = this.WhenAnyValue(x => x.CurrentViewModel)
+            //     .Select(vm => vm is CommonViewModel) // true, если текущий VM - HomeViewModel
+            //     .ToProperty(this, x => x.IsCommonViewSelected);
+
+            IsCommonViewSelected = true;
+
+            this.WhenAnyValue(x => x.IsCommonViewSelected)
+                .Subscribe(isCommonViewSelected =>
+                {
+                    Debug.WriteLine($">>> IsCommonViewSelected = {isCommonViewSelected}");
+                    if (isCommonViewSelected) ExecuteGoToCommon();
+                    else ExecuteGoToMolecular();
+                });
+
+            // --- Инициализация Команд ---
+            GoToHomeCommand = ReactiveCommand.Create(ExecuteGoToHome);
+            GoToCommonCommand = ReactiveCommand.Create(ExecuteGoToCommon);
+            GoToMolecularCommand = ReactiveCommand.Create(ExecuteGoToMolecular);
+            // LoadDynamicThemeCommand больше не нужен здесь, он в ModelSettingsViewModel
+            ShowSettingsCommand = ReactiveCommand.Create(ExecuteShowSettings);
+            ShowAboutCommand = ReactiveCommand.Create(ExecuteShowAbout);
+            ShowDataPanelCommand = ReactiveCommand.Create(ExecuteShowDataPanel);
+            ExitApplicationCommand = ReactiveCommand.Create(ExecuteExitApplication);
+
+            // --- !!! Обработка Interaction от SettingsViewModel !!! ---
+            SettingsVM.CloseSettingsInteraction.RegisterHandler(interaction =>
             {
-                case "Home":
-                    NavigateToHomeViewCommand.Execute(null); // Убедитесь, что команды вызываются корректно
-                    break;
-                case "Load":
-                    LoadFileCommand.Execute(null);
-                    break;
-                case "Save":
-                    // Вероятно, здесь должна быть команда Save, а не LoadFile?
-                    SaveSettingsCommand.Execute(null); // Исправлено на SaveSettingsCommand
-                    break;
-                case "Settings":
-                    SettingsVm.ShowSettingsCommand.Execute(null);
-                    break;
-                case "Exit":
-                    ExitApplicationCommand.Execute(null);
-                    break;
-                case "About":
-                    ShowAboutCommand.Execute(null);
-                    break;
-            }
+                 Debug.WriteLine("[MainViewModel] Получен запрос на закрытие настроек от SettingsVM.");
+                 IsShowingSettings = false; // Скрываем панель
+                 SettingsVM.IsShowingSettings = IsShowingSettings;
+                 interaction.SetOutput(Unit.Default); // Сообщаем, что запрос обработан
+            });
+            
+            this.WhenAnyValue(x => x.SelectedNavItem)
+                .Where(item => item is NavigationViewItem) // Убедимся, что это нужный тип
+                .Cast<NavigationViewItem>() // Приводим тип
+                .Where(item => item.Tag is string) // Убедимся, что Tag - строка
+                .Select(item => item.Tag as string) // Берем Tag
+                .Subscribe(tag => // Выполняем действие при получении нового Tag
+                {
+                    Debug.WriteLine($"[SettingsViewModel] Выбран NavItem с Tag: {tag}");
+                    switch (tag)
+                    {
+                        case "Home": ExecuteGoToHome(); break;
+                        case "Load": break;
+                        case "Save": break;
+                        case "Settings": ExecuteShowSettings(); break;
+                        case "About": ExecuteShowAbout(); break;
+                        case "Exit": ExecuteExitApplication(); break;
+                    }
+                    Dispatcher.UIThread.Post(
+                        () => SelectedNavItem = null, DispatcherPriority.Background);
+                });
+
+            // Устанавливаем начальный вид
+            ExecuteGoToHome();
         }
-
-        // Сбрасываем выбор элемента навигации после обработки
-        Dispatcher.UIThread.Post(
-            () => SelectedNavigationViewItem = null, DispatcherPriority.Background);
-    }
-
-    // Обработчики изменения Is*Selected теперь в основном для UI-реагирования,
-    // основная логика навигации - в командах RelayCommand.
-    // Если Handle* методы выполняли ту же навигацию, их можно упростить или убрать,
-    // если навигация уже происходит через RelayCommand.
-    // Оставил их для совместимости, если они используются где-то еще.
-    partial void OnIsCommonViewSelectedChanged(bool value)
-    {
-        if (IsCommonViewSelected && CurrentView is not CommonViewModel)
-        {
-            NavigateToCommonViewCommand.Execute(null);
-        }
-    }
-
-    partial void OnIsMolecularViewSelectedChanged(bool value)
-    {
-        if (IsMolecularViewSelected && CurrentView is not MolecularViewModel)
-        {
-            NavigateToMolecularViewCommand.Execute(null);
-        }
-    }
-
-    [RelayCommand]
-    private void ExitApplication()
-    {
-        if (Application.Current?.ApplicationLifetime
-            is IClassicDesktopStyleApplicationLifetime desktopLifetime) desktopLifetime.Shutdown();
-    }
-
-    [RelayCommand]
-    private void LoadFile()
-    {
-    }
-
-    [RelayCommand]
-    private void SaveSettings()
-    {
-    }
-
-    [RelayCommand]
-    private void ProcessSpeedChange() { /* ... */ }
-
-    [RelayCommand]
-    private void FlameLevelChange() { /* ... */ }
-
-    [RelayCommand]
-    private void CoolDownCommand() { /* ... */ }
-
-    [RelayCommand]
-    private void ShowStructureCommand() { /* ... */ }
-
-    // Этот метод теперь корректно работает с любым CurrentView, 
-    // если он типа CommonViewModel
+        
+        // --- Реализация Методов Команд ---
     
+        private void ExecuteGoToHome()
+        {
+            DynamicViewContent = null; IsDynamicViewActive = false;
+            IsCommonViewSelected = false;
+            CurrentViewModel = _serviceProvider.GetRequiredService<HomeViewModel>();
+            Debug.WriteLine(">>> Переход на Home");
+        }
+        private void ExecuteGoToCommon()
+        {
+            DynamicViewContent = null; IsDynamicViewActive = false;
+            IsCommonViewSelected = true;
+            CurrentViewModel = _serviceProvider.GetRequiredService<CommonViewModel>();
+            Debug.WriteLine(">>> Переход на Common");
+        }
+        private void ExecuteGoToMolecular()
+        {
+            IsCommonViewSelected = false;
+            DynamicViewContent = null; IsDynamicViewActive = false;
+            CurrentViewModel = _serviceProvider.GetRequiredService<MolecularViewModel>();
+            Debug.WriteLine(">>> Переход на Molecular");
+        }
+        private void ExecuteShowSettings() { SettingsVM.IsShowingSettings = !SettingsVM.IsShowingSettings; }
+        private void ExecuteShowAbout() { IsShowingAbout = !IsShowingAbout; }
+        private void ExecuteShowDataPanel() { IsShowingDataPanel = !IsShowingDataPanel; }
 
-    // Вспомогательный метод для обновления громкости в CommonViewModel, если он активен
-    private void UpdatePotVolumeInCommonViewModel(string? volume)
-    {
-         // Получаем CommonViewModel через провайдер, чтобы убедиться,
-         // что работаем с тем же экземпляром (если он Singleton/Scoped)
-         // или чтобы обновить его состояние перед следующим показом (если Transient)
-         // Примечание: Если CommonViewModel - Singleton, можно хранить ссылку на него.
-         
-         // Безопасный способ: Обновляем только если CommonView активен
-         if (CurrentView is CommonViewModel commonVm)
-         {
-             commonVm.UpdatePotVolume(volume);
-         }
-         // Альтернатива (если CommonViewModel - Singleton):
-         // var commonVmInstance = _serviceProvider.GetService<CommonViewModel>();
-         // commonVmInstance?.UpdatePotVolume(volume);
+        private void ExecuteExitApplication()
+        {
+             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+             { desktop.Shutdown(); }
+        }
+
+        
+        
+        // Метод загрузки динамической темы теперь не нужен здесь
+        // private async Task ExecuteLoadDynamicViewAsync() { ... }
     }
-
-    public string[] VolumeOptions { get; } =
-    {
-        "1.0 литр", "1.5 литра", "2.5 литра", "3.5 литра", "5.0 литров", "6.0 литров", "10.0 литров"
-    };
-    public string[] LiquidTypes { get; } =
-    {
-        "1.0 литр", "1.5 литра", "2.5 литра", "3.5 литра", "5.0 литров", "6.0 литров", "10.0 литров"
-    };
 }

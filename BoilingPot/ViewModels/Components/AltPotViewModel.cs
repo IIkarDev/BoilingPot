@@ -1,21 +1,18 @@
-﻿using Avalonia.Media;
-using Avalonia.Metadata;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿// ViewModels/Components/AltPotViewModel.cs
+using Avalonia.Media;
+using System.Diagnostics;
 
-namespace BoilingPot.ViewModels.Components;
-
-public partial class AltPotViewModel : ViewModelBase, IPotViewModel
+namespace BoilingPot.ViewModels.Components
 {
-    [ObservableProperty] private string? _potVolumeText; 
-    
-    [ObservableProperty] private string? _liquidTypeText;
-    
-    [ObservableProperty] private SolidColorBrush _liquidColor;
-
-    public AltPotViewModel()
+    // Конкретная реализация ViewModel для альтернативной темы кастрюли.
+    public partial class AltPotViewModel : PotViewModelBase // Наследуемся от PotViewModelBase
     {
-        PotVolumeText = "6.0 литров";
-        LiquidTypeText = "Вода";
-        LiquidColor = new SolidColorBrush(Colors.Blue);
+        public AltPotViewModel()
+        {
+            PotVolumeText = "3.5 литра (Alt)";
+            LiquidTypeText = "Керосин";
+            LiquidColor = Brushes.LightGoldenrodYellow;
+            Debug.WriteLine(">>> AltPotViewModel СОЗДАН (RxUI)");
+        }
     }
 }

@@ -1,37 +1,57 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using BoilingPot.ViewModels; // Убедитесь, что пространство имен MolecularViewModel здесь доступно
+﻿// Views/MolecularView.axaml.cs
+using Avalonia.ReactiveUI; // Для ReactiveUserControl
+using BoilingPot.ViewModels; // Пространство имен MolecularViewModel
+using ReactiveUI; // Для WhenActivated
+using System.Reactive.Disposables; // Для CompositeDisposable
+using System.Diagnostics; // Для Debug
+using System.Reactive.Linq; // Для Where, Select
 
-namespace BoilingPot.Views;
-
-public partial class MolecularView : UserControl
+namespace BoilingPot.Views
 {
-    public MolecularView()
+    // Представление для экрана молекулярной симуляции.
+    // Наследуется от ReactiveUserControl<TViewModel>.
+    public partial class MolecularView : ReactiveUserControl<MolecularViewModel>
     {
-        InitializeComponent();
+        public MolecularView()
+        {
+            InitializeComponent();
+            Debug.WriteLine($"[{this.GetType().Name}] View создан.");
 
-        // Вызываем инициализацию при загрузке представления
-        // this.AttachedToVisualTree += OnAttachedToVisualTree;
+            // WhenActivated вызывается при активации View в визуальном дереве
+            // (т.е. когда View становится видимым на экране).
+            // Здесь мы настраиваем подписки или вызываем методы инициализации.
+            this.WhenActivated(disposables =>
+            {
+                Debug.WriteLine($"[{this.GetType().Name}] АКТИВИРОВАН.");
+
+                // Проверяем, что ViewModel доступен и имеет метод InitializeAsync
+                // (ReactiveUserControl гарантирует, что ViewModel не null в WhenActivated)
+                if (ViewModel != null)
+                {
+                    // Вызываем асинхронный метод инициализации ViewModel
+                    // (например, чтобы сгенерировать пузырьки и запустить таймер)
+                    // Вызов без await, т.к. мы в лямбде активации
+                     // TODO: Получить начальные значения скорости/нагрева из настроек (например, из Singleton сервиса)
+                     // Пока используем заглушки 1.0
+                     _ = ViewModel.InitializeAsync(1.0, 1.0); // Запускаем инициализацию
+
+                     Debug.WriteLine($"[{this.GetType().Name}] WhenActivated: Вызван ViewModel.InitializeAsync().");
+                }
+                else
+                {
+                     Debug.WriteLine($"[{this.GetType().Name}] WhenActivated: ViewModel РАВЕН null!");
+                }
+
+
+                // Код очистки (отписки) выполняется автоматически при деактивации View
+                 // (Когда View становится невидимым или удаляется из дерева)
+                 Disposable.Create(() => System.Diagnostics.Debug.WriteLine($"[{this.GetType().Name}] ДЕАКТИВИРОВАН.")).DisposeWith(disposables);
+            });
+        }
+
+        // Старый обработчик DataContextChanged не нужен с ReactiveUserControl
+        // private void OnDataContextChanged(object? sender, EventArgs e) { ... }
+        // Метод OnDetachedFromVisualTree тоже не нужен для отписки от WhenActivated
+        // protected override void OnDetachedFromVisualTree(...) { ... }
     }
-
-    // private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
-    // {
-    //     // Проверяем, что DataContext имеет тип MolecularViewModel
-    //     if (DataContext is MolecularViewModel viewModel)
-    //     {
-    //         // Теперь вызываем метод у MolecularViewModel
-    //         // Убедитесь, что этот метод существует в MolecularViewModel!
-    //         viewModel.InitializeMolecularView();
-    //     }
-    //     // Удаляем обработчик после первого вызова, если инициализация нужна только один раз
-    //     // this.AttachedToVisualTree -= OnAttachedToVisualTree;
-    // }
-    //
-    // // Если вы хотите отписаться при отсоединении от дерева:
-    // // protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-    // // {
-    // //     base.OnDetachedFromVisualTree(e);
-    // //     this.AttachedToVisualTree -= OnAttachedToVisualTree;
-    // // }
 }

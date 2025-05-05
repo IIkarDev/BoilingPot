@@ -1,54 +1,101 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// ViewModels/SettingsViewModels/GeneralSettingsViewModel.cs
 
+using ReactiveUI; // Базовый класс RxUI
+using ReactiveUI.Fody.Helpers; // Для [Reactive]
+using System;
+using System.Collections.Generic;
+using System.Diagnostics; // Для Debug
+using System.Reactive; // Для Unit
+using System.Reactive.Linq;
+using Avalonia.Layout;
+using FluentAvalonia.UI.Controls; // Для WhenAnyValue
+
+// Пространство имен для ViewModel секций настроек
 namespace BoilingPot.ViewModels.SettingsViewModels
 {
+    // ViewModel для секции "Общие Настройки".
     public partial class GeneralSettingsViewModel : ViewModelBase
     {
-        // --- Свойства для секции "Общие" ---
-        public bool IsLoadFeatureEnabled = true;
-        public bool IsSaveFeatureEnabled = true;
+        // --- Свойства для общих настроек ---
 
-        // Пример: Язык
-        [ObservableProperty]
-        private string? _selectedLanguage; // Нужны будут и VolumeOptions
+        // Язык (StringEqualsConverter используется в View для RadioButton)
+        [Reactive] public string SelectedLanguage { get; set; } = "Русский"; // Начальное значение
 
-        // Пример: Отображать кнопку панели данных
-        [ObservableProperty]
-        private bool _showDataPanelButton;
+        // Панель данных
+        [Reactive] public bool ShowDataPanelButton { get; set; } = true; // Флаг отображения кнопки панели
+        [Reactive] public HorizontalAlignment DataPanelButtonHorAlignment { get; set; } = HorizontalAlignment.Right; // Положение кнопки
+        [Reactive] public VerticalAlignment DataPanelButtonVerAlignment { get; set; } = VerticalAlignment.Top; // Положение кнопки
+        [Reactive] public Symbol DataPanelButtonSymbol { get; set; } = Symbol.ChevronLeft;
+        [Reactive] public string SelectedDataPanelButtonPosition { get; set; } = "Верхний правый угол"; // Положение кнопки
+        [Reactive] public bool IsDataPanelOnLeft { get; set; } // Положение панели
 
-        // Пример: Положение кнопки панели данных
-        [ObservableProperty]
-        private string? _dataPanelButtonPosition; // Нужны будут и VolumeOptions
+        // Отображение элементов навигации в ControlPanel (NavigationView)
+        [Reactive] public bool ShowHomeNavItem { get; set; } = true;
+        [Reactive] public bool ShowLoadNavItem { get; set; } = true;
+        [Reactive] public bool ShowSaveNavItem { get; set; } = true;
+        [Reactive] public bool ShowSettingsNavItem { get; set; } = true; // Навигация на эту секцию
+        [Reactive] public bool ShowAboutNavItem { get; set; } = true;
+        [Reactive] public bool ShowExitNavItem { get; set; } = true;
 
-        // Пример: Разместить панель данных слева
-        [ObservableProperty]
-        private bool _isDataPanelOnLeft;
+        // Списки опций для ComboBox
+        public List<string> LanguageOptions { get; } = new List<string> { "Русский", "English" };
+        public List<string> PositionOptions { get; } = new List<string> { "Верхний правый угол", "Нижний правый угол", "Верхний левый угол", "Нижний левый угол" };
 
-        // Примеры: Свитчеры отображения для NavigationView
-        [ObservableProperty]
-        private bool _showHomeNavItem = true;
-        [ObservableProperty]
-        private bool _showLoadNavItem = true;
-        [ObservableProperty]
-        private bool _showSaveNavItem = true;
-        [ObservableProperty]
-        private bool _showAboutNavItem = true;
-        [ObservableProperty]
-        private bool _showSettingsNavItem = true;
-        [ObservableProperty]
-        private bool _showExitNavItem = true;
-        
-        
 
+        // --- Команды (если нужны для специфичных действий) ---
+        // public ReactiveCommand<Unit, Unit> ApplyGeneralSettingsCommand { get; }
+
+        // --- Конструктор ---
         public GeneralSettingsViewModel()
         {
-            // TODO: Загрузить начальные значения настроек
-            _selectedLanguage = "Русский"; // Пример
-            _showDataPanelButton = true;
-            _dataPanelButtonPosition = "Верхний правый угол"; // Пример
-        }
+             Debug.WriteLine("[GeneralSettingsVM] Конструктор RxUI: Начало");
 
-        public string[] LanguageOptions { get; } = { "Русский", "English" }; // Пример
-        public string[] PositionOptions { get; } = { "Верхний правый угол", "Нижний правый угол", "Верхний левый угол", "Нижний левый угол" }; // Пример
+             this.WhenAnyValue(x => x.SelectedDataPanelButtonPosition)
+                 .Subscribe(selectedDataPanelButtonPosition => // Выполняем действие при получении нового Tag
+                 {
+                     switch (selectedDataPanelButtonPosition)
+                     {
+                         case "Верхний правый угол": 
+                             DataPanelButtonHorAlignment = HorizontalAlignment.Right;
+                             DataPanelButtonVerAlignment = VerticalAlignment.Top;
+                             DataPanelButtonSymbol = Symbol.ChevronLeft; break;
+                         case "Нижний правый угол": 
+                             DataPanelButtonHorAlignment = HorizontalAlignment.Right;
+                             DataPanelButtonVerAlignment = VerticalAlignment.Bottom;
+                             DataPanelButtonSymbol = Symbol.ChevronLeft; break;
+                         case "Верхний левый угол": 
+                             DataPanelButtonHorAlignment = HorizontalAlignment.Left;
+                             DataPanelButtonVerAlignment = VerticalAlignment.Top;
+                             DataPanelButtonSymbol = Symbol.ChevronRight; break;
+                         case "Нижний левый угол": 
+                             DataPanelButtonHorAlignment = HorizontalAlignment.Left;
+                             DataPanelButtonVerAlignment = VerticalAlignment.Bottom; 
+                             DataPanelButtonSymbol = Symbol.ChevronRight; break;
+                        default:
+                             DataPanelButtonHorAlignment = HorizontalAlignment.Right;
+                             DataPanelButtonVerAlignment = VerticalAlignment.Top; 
+                             DataPanelButtonSymbol = Symbol.ChevronLeft; break;
+                     }
+                 });
+            // --- Реакция на изменение свойств (пример) ---
+            // Подписываемся на изменение языка (когда UI обновит SelectedLanguage)
+            this.WhenAnyValue(x => x.SelectedLanguage)
+                .Skip(1) // Пропускаем начальное значение
+                .Subscribe(lang => Debug.WriteLine($"[GeneralSettingsVM] Выбран язык: {lang}"));
+
+            // Подписываемся на изменение флага ShowDataPanelButton
+            this.WhenAnyValue(x => x.ShowDataPanelButton)
+                 .Subscribe(isVisible => Debug.WriteLine($"[GeneralSettingsVM] Кнопка панели данных видима: {isVisible}"));
+
+            // Подписываемся на изменение положения панели
+             this.WhenAnyValue(x => x.IsDataPanelOnLeft)
+                  .Subscribe(isOnLeft => Debug.WriteLine($"[GeneralSettingsVM] Панель данных слева: {isOnLeft}"));
+
+
+            // TODO: Добавить логику загрузки/сохранения настроек при инициализации или при вызове команды "Сохранить" в SettingsViewModel
+            // TODO: Возможно, некоторые настройки (как язык) должны быть применены сразу, другие - при сохранении.
+
+             Debug.WriteLine("[GeneralSettingsVM] Конструктор RxUI: Завершение");
+        }
     }
 }

@@ -1,79 +1,84 @@
-﻿<!-- Views/Components/SettingsViews/ModelSettingsView.axaml -->
+﻿<!-- Views/SettingsViews/ModelSettingsView.axaml -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:BoilingPot.ViewModels.SettingsViewModels"
+             xmlns:vm="using:BoilingPot.ViewModels.SettingsViewModels" 
              xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:conv="using:BoilingPot.Converters" 
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
              x:Class="BoilingPot.Views.SettingsViews.ModelSettingsView"
-             x:DataType="vm:ModelSettingsViewModel"
+             x:DataType="vm:ModelSettingsViewModel" 
              Padding="10">
 
     <Design.DataContext>
         <vm:ModelSettingsViewModel/>
     </Design.DataContext>
 
-     <UserControl.Styles>
-         <!-- Стили можно вынести -->
-         <Style Selector="TextBlock.SettingHeader">
-             <Setter Property="Margin" Value="0,15,0,5"/>
-             <Setter Property="FontWeight" Value="SemiBold"/>
-         </Style>
-          <Style Selector="Border.ModelSection">
-             <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/>
-             <Setter Property="BorderThickness" Value="1"/>
-             <Setter Property="CornerRadius" Value="4"/>
-             <Setter Property="Padding" Value="10"/>
-             <Setter Property="Margin" Value="0,5,0,15"/>
-          </Style>
-           <Style Selector="Button.LoadButton">
-               <Setter Property="Margin" Value="0,10,0,0"/>
-                <Setter Property="HorizontalAlignment" Value="Left"/>
-           </Style>
-     </UserControl.Styles>
+     <UserControl.Resources>
+         <conv:StringEqualsConverter x:Key="StringEqualsConverter"/>
+     </UserControl.Resources>
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.SettingHeader">
+            <Setter Property="Margin" Value="0,15,0,5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.LoadButton">
+            <Setter Property="Margin" Value="0,10,0,0"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="8">
+            <TextBlock Classes="SectionTitle" Text="Настройки Моделей"/>
 
-    <StackPanel Spacing="8">
-        <TextBlock Classes="SectionTitle" Text="Настройки Моделей"/>
+            <!-- Секция Кастрюля -->
+            <HeaderedContentControl Header="Внешний вид Кастрюли">
+                <StackPanel Spacing="5">
 
-        <!-- Секция Кастрюля -->
-        <Border Classes="ModelSection">
-             <StackPanel Spacing="5">
-                <TextBlock Text="Внешний вид Кастрюли" FontWeight="Medium"/>
-                 <!-- RadioButton для выбора встроенных тем -->
-                 <RadioButton Content="Стандартная тема" GroupName="PotTheme" IsChecked="{Binding IsMainPotTheme}"/>
-                 <RadioButton Content="Альтернативная темная" GroupName="PotTheme" IsChecked="{Binding IsAltPotTheme}"/>
-                 <!-- RadioButton для кастомной темы -->
-                 <RadioButton Content="Загруженная тема" GroupName="PotTheme" IsChecked="{Binding IsCustomPotTheme}"/>
+                     <RadioButton Content="Стандартная тема" GroupName="PotTheme"
+                                  IsChecked="{Binding SelectedPotThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Main}"/>
+                     <RadioButton Content="Альтернативная темная" GroupName="PotTheme"
+                                  IsChecked="{Binding SelectedPotThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Alt}"/>
+                     <RadioButton Content="Загруженная тема" GroupName="PotTheme"
+                                  IsChecked="{Binding SelectedPotThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Custom}"/>
 
-                 <!-- Кнопка загрузки кастомной темы AXAML -->
-                 <Button Content="Загрузить тему (.axaml)..."
-                         ToolTip.Tip="Загрузить внешний вид кастрюли из файла .axaml"
-                         Classes="LoadButton" Command="{Binding LoadPotThemeCommand}"/>
-            </StackPanel>
-        </Border>
+                     <Button Content="Загрузить тему (.axaml)..."
+                             ToolTip.Tip="Загрузить внешний вид кастрюли из файла .axaml"
+                             Classes="LoadButton" Command="{Binding LoadPotThemeCommand}"/>
+                </StackPanel>
+            </HeaderedContentControl>
 
-         <!-- Секция Плита (Аналогично) -->
-         <Border Classes="ModelSection">
-            <StackPanel Spacing="5">
-                 <TextBlock Text="Внешний вид Плиты" FontWeight="Medium"/>
-                 <RadioButton Content="Стандартный вид" GroupName="StoveView" IsChecked="{Binding IsMainStoveTheme}"/>
-                 <RadioButton Content="Альтернативный вид" GroupName="StoveView" IsChecked="{Binding IsAltStoveTheme}"/> <!-- Добавить IsAltStoveOption в VM -->
-                 <Button Content="Загрузить тему (.axaml)..."
-                          Classes="LoadButton" Command="{Binding LoadStoveModelCommand}"/>
-            </StackPanel>
-        </Border>
+             <!-- Секция Плита -->
+             <HeaderedContentControl Header="Внешний вид Плиты">
+                <StackPanel Spacing="5">
+                     <RadioButton Content="Стандартная тема" GroupName="StoveTheme"
+                                  IsChecked="{Binding SelectedStoveThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Main}"/>
+                     <RadioButton Content="Альтернативная" GroupName="StoveTheme"
+                                  IsChecked="{Binding SelectedStoveThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Alt}"/>
+                     <RadioButton Content="Загруженная тема" GroupName="StoveTheme"
+                                   IsChecked="{Binding SelectedStoveThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Custom}"/>
+                     <Button Content="Загрузить тему (.axaml)..."
+                              Classes="LoadButton" Command="{Binding LoadStoveThemeCommand}"/>
+                </StackPanel>
+             </HeaderedContentControl>
 
-         <!-- Секция Пузыри (Аналогично) -->
-         <Border Classes="ModelSection">
-            <StackPanel Spacing="5">
-                 <TextBlock Text="Внешний вид Пузырей" FontWeight="Medium"/>
-                 <RadioButton Content="Сферические" GroupName="BubbleView" IsChecked="{Binding IsMainBubbleTheme}"/>
-                 <RadioButton Content="Реалистичные" GroupName="BubbleView" IsChecked="{Binding IsMainBubbleTheme}"/> <!-- Добавить IsAltBubbleOption в VM -->
-                 <Button Content="Загрузить стиль (.axaml)..."
-                          Classes="LoadButton" Command="{Binding LoadBubbleModelCommand}"/>
-            </StackPanel>
-        </Border>
+             <!-- Секция Пузыри -->
+             <HeaderedContentControl Header="Внешний вид Пузырей">
+                <StackPanel Spacing="5">
+                     <RadioButton Content="Стандартный (Сферические)" GroupName="BubbleTheme"
+                                  IsChecked="{Binding SelectedBubbleThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Main}"/>
+                     <RadioButton Content="Альтернативный" GroupName="BubbleTheme"
+                                  IsChecked="{Binding SelectedBubbleThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Alt}"/>
+                     <RadioButton Content="Загруженный стиль" GroupName="BubbleTheme"
+                                  IsChecked="{Binding SelectedBubbleThemeKey, Mode=TwoWay, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Custom}"/>
+                     <Button Content="Загрузить стиль (.axaml)..."/>
+                              <!-- Classes="LoadButton" Command="{Binding LoadBubbleModelCommand}"/> -->
+                </StackPanel>
+            </HeaderedContentControl>
 
-    </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

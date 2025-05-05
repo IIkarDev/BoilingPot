@@ -1,90 +1,154 @@
 ﻿// Views/CommonView.axaml.cs
-using Avalonia.Controls;
-using Avalonia.Styling; // Для IStyle
-using BoilingPot.ViewModels; // Для CommonViewModel
+using Avalonia.ReactiveUI; // Для ReactiveUserControl
+using Avalonia.Controls; // Для Control, FindControl
+using Avalonia.Styling; // Для IStyle, Styles
+using BoilingPot.ViewModels; // Пространство имен CommonViewModel
 using BoilingPot.ViewModels.SettingsViewModels; // Для ModelSettingsViewModel
 using BoilingPot.Views.Components; // Для PotPresenter
+using ReactiveUI; // Для WhenActivated
+using System.Reactive.Disposables; // Для CompositeDisposable
 using System;
+using System.Diagnostics; // Для Debug
+using System.Reactive.Linq; // Для Where, Select
+using System.Reactive;
+using System.Threading.Tasks; // Для Unit
+using Splat; // Для LogManager
 
 namespace BoilingPot.Views
 {
-    public partial class CommonView : UserControl
+    // Представление для экрана симуляции (где отображается кастрюля и плита).
+    // Наследуется от ReactiveUserControl<TViewModel>.
+    public partial class CommonView : ReactiveUserControl<CommonViewModel> // DataContext - CommonViewModel
     {
-        private IStyle? _lastAppliedPotStyle = null; // Храним ссылку на последний примененный стиль
+        private IStyle? _lastAppliedPotStyle = null; // Храним ссылку на последний примененный стиль кастрюли
+        private IStyle? _lastAppliedStoveStyle = null; // Храним ссылку на последний примененный стиль плиты
+        private IStyle? _lastAppliedBubbleStyle = null; // Храним ссылку на последний примененный стиль пузырьков
+
 
         public CommonView()
         {
             InitializeComponent();
-            this.DataContextChanged += OnDataContextChanged;
-        }
+            Debug.WriteLine($"[{this.GetType().Name}] View создан. HashCode: {this.GetHashCode()}");
 
-        private async void OnDataContextChanged(object? sender, EventArgs e)
+            // WhenActivated вызывается, когда View становится активным в визуальном дереве.
+            // Здесь настраиваем подписки на Observable из ViewModel, которые должны
+            // влиять на UI этого View.
+        this.WhenActivated(disposables =>
         {
-            // ... (код отписки/подписки на ApplyStyleRequested) ...
+            Debug.WriteLine($"[{this.GetType().Name}] АКТИВИРОВАН. HashCode: {this.GetHashCode()}");
 
-            // !!! ВЫЗЫВАЕМ ИНИЦИАЛИЗАЦИЮ ЗДЕСЬ !!!
-            if (this.DataContext is CommonViewModel vm && vm.ModelVm != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"[{this.GetType().Name}] OnDataContextChanged: Вызов ModelVm.InitializeAsync().");
-                await vm.ModelVm.InitializeAsync(); // Асинхронный вызов
-            }
-        }
-        // private void OnDataContextChanged(object? sender, EventArgs e)
-        // {
-        //     if (this.DataContext is CommonViewModel vm && vm.ModelVm != null)
-        //     {
-        //         // Отписываемся от старого, если был
-        //          if (vm.ModelVm != null) vm.ModelVm.ApplyStyleRequested -= ApplyStyleToPresenter;
-        //         // Подписываемся на событие нового ViewModel
-        //         vm.ModelVm.ApplyStyleRequested += ApplyStyleToPresenter;
-        //     }
-        //      // TODO: Реализовать отписку от старого vm.ModelVm при смене DataContext самого CommonView
-        // }
+            // --- 1. Подписка на ModelVm и вызов его InitializeAsync ---
+            ViewModel.WhenAnyValue(x => x.ModelVm)
+                .Where(modelVm => modelVm != null)
+                .SelectMany(async vm => // <<< async лямбда, возвращает Task<Unit>
+                {
+                    Debug.WriteLine($"[{this.GetType().Name}] WhenActivated: Вызов ViewModel.ModelVm.InitializeAsync().");
+                    await vm!.InitializeAsync(); // <<< await здесь
+                    return Unit.Default; // <<< Возвращаем Unit.Default
+                })
+                .Subscribe() // Подписываемся на этот Task
+                .DisposeWith(disposables); // Автоматическая отписка
 
-        private void ApplyStyleToPresenter(IStyle? style, string targetName)
+            // --- 2. Подписка на ModelVm и настройка обработчика Interaction ---
+            ViewModel.WhenAnyValue(x => x.ModelVm) // Подписываемся на изменение ModelVm
+                 .Where(modelVm => modelVm != null) // Убедимся, что ModelVm не null
+                 .Subscribe(modelVm => // <<< Просто подписываемся на ModelVm
+                 {
+                     // Настраиваем обработчик Interaction, когда ModelVm доступен
+                     Debug.WriteLine($"[{this.GetType().Name}] Настройка обработчика ApplyStyleInteraction для ModelVm типа {modelVm.GetType().Name}.");
+
+                     modelVm!.ApplyStyleInteraction.RegisterHandler(
+                         // !!! Асинхронная лямбда для RegisterHandler !!!
+                         async interaction => // <<< async и возвращает Task<Unit>
+                         {
+                             Debug.WriteLine($"[{this.GetType().Name}] Получен Handle для ApplyStyleInteraction. Цель: {interaction.Input.Item2}, Стиль IsNull: {interaction.Input.Item1 == null}");
+
+                             // Получаем данные
+                             var styleData = interaction.Input;
+
+                             // Вызываем асинхронный метод применения стиля и ОЖИДАЕМ его
+                             await ApplyStyleToPresenter(styleData.Item1, styleData.Item2);
+
+                             // Сообщаем, что обработали, возвращая Unit.Default
+                             // return Unit.Default; // <<< Возвращаем Unit.Default
+                         })
+                         .DisposeWith(disposables); // <<< Автоматическая отписка обработчика
+
+                      Debug.WriteLine($"[{this.GetType().Name}] WhenActivated: Обработчик Interaction для стилей настроен.");
+                 })
+                 .DisposeWith(disposables); // Автоматическая отписка от подписки на ModelVm
+
+            // Лог деактивации
+            Disposable.Create(() => Debug.WriteLine($"[{this.GetType().Name}] ДЕАКТИВИРОВАН. HashCode: {this.GetHashCode()}")).DisposeWith(disposables);
+        });
+    }
+
+        // Метод для применения стиля к соответствующему Presenter.
+        private async Task ApplyStyleToPresenter(IStyle? style, string targetName)
         {
-            // Находим нужный Presenter по имени (убедитесь, что имя задано в XAML)
-            var presenter = this.FindControl<Control>(targetName + "Presenter"); // Например, "PotPresenter"
+             Debug.WriteLine($"[{this.GetType().Name}] ApplyStyleToPresenter: Запрос на применение стиля для '{targetName}'. Стиль IsNull={style == null}");
+
+            // Находим нужный Presenter по имени
+            var presenter = this.FindControl<Control>(targetName + "Presenter"); // Имя должно быть "PotPresenter", "StovePresenter", "BubblePresenter"
             if (presenter == null)
             {
-                System.Diagnostics.Debug.WriteLine($"Презентер '{targetName}Presenter' не найден в CommonView.");
+                Debug.WriteLine($"!!! ОШИБКА: Презентер '{targetName}Presenter' не найден в {this.GetType().Name}.");
                 return;
             }
+            Debug.WriteLine($"[{this.GetType().Name}] ApplyStyleToPresenter: Презентер '{presenter.Name}' найден.");
 
-            // --- Логика очистки старого и добавления нового стиля ---
-            // Удаляем предыдущий динамически добавленный стиль, если он был
-            if (_lastAppliedPotStyle != null && presenter.Styles.Contains(_lastAppliedPotStyle))
+            // Определяем, какой стиль нужно удалить и какой запомнить, в зависимости от цели
+            IStyle? styleToRemove = null;
+            switch (targetName)
             {
-                 presenter.Styles.Remove(_lastAppliedPotStyle);
-                 System.Diagnostics.Debug.WriteLine($"Старый стиль удален из {presenter.Name}");
+                case "Pot": styleToRemove = _lastAppliedPotStyle; break;
+                case "Stove": styleToRemove = _lastAppliedStoveStyle; break;
+                case "Bubble": styleToRemove = _lastAppliedBubbleStyle; break;
             }
+
+            // Удаляем предыдущий ДИНАМИЧЕСКИ добавленный стиль, если он был
+            if (styleToRemove != null && presenter.Styles.Contains(styleToRemove))
+            {
+                 presenter.Styles.Remove(styleToRemove);
+                 Debug.WriteLine($"[{this.GetType().Name}] ApplyStyleToPresenter: Старый стиль удален из '{presenter.Name}'.");
+            }
+             else if (styleToRemove != null) { Debug.WriteLine($"[{this.GetType().Name}] ApplyStyleToPresenter: Старый стиль не найден в коллекции стилей '{presenter.Name}'."); }
+
 
             // Добавляем новый стиль, если он не null
             if (style != null)
             {
-                presenter.Styles.Add(style);
-                _lastAppliedPotStyle = style; // Запоминаем новый стиль
-                System.Diagnostics.Debug.WriteLine($"Новый стиль применен к {presenter.Name}");
+                // Проверяем, нет ли уже такого стиля (маловероятно, но на всякий случай)
+                if (!presenter.Styles.Contains(style))
+                {
+                     presenter.Styles.Add(style);
+                     Debug.WriteLine($"[{this.GetType().Name}] ApplyStyleToPresenter: Новый стиль ДОБАВЛЕН к '{presenter.Name}'.");
+
+                     // Запоминаем новый стиль как последний примененный
+                      switch (targetName)
+                     {
+                         case "Pot": _lastAppliedPotStyle = style; break;
+                         case "Stove": _lastAppliedStoveStyle = style; break;
+                         case "Bubble": _lastAppliedBubbleStyle = style; break;
+                     }
+                } else { Debug.WriteLine($"[{this.GetType().Name}] ApplyStyleToPresenter: Новый стиль УЖЕ существует у '{presenter.Name}'."); }
             }
-            else
+            else // Если пришел null, значит, нужно очистить (вернуть к дефолту, если есть)
             {
-                 _lastAppliedPotStyle = null; // Сброс, если пришел null (для очистки)
-                 System.Diagnostics.Debug.WriteLine($"Стиль для {presenter.Name} очищен.");
-                 // Можно вернуть стиль по умолчанию, если он был определен где-то еще
+                 Debug.WriteLine($"[{this.GetType().Name}] ApplyStyleToPresenter: Стиль для '{presenter.Name}' очищен (пришел null).");
+                 // Сбрасываем ссылку на последний примененный стиль
+                  switch (targetName)
+                 {
+                     case "Pot": _lastAppliedPotStyle = null; break;
+                     case "Stove": _lastAppliedStoveStyle = null; break;
+                     case "Bubble": _lastAppliedBubbleStyle = null; break;
+                 }
+                 // Здесь можно было бы применить стиль по умолчанию, если он определен где-то иначе
             }
+             Debug.WriteLine($"[{this.GetType().Name}] ApplyStyleToPresenter: Завершено для '{targetName}'.");
         }
 
-        // Не забыть отписаться
-        protected override void OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
-        {
-             if (this.DataContext is CommonViewModel vm && vm.ModelVm != null)
-             {
-                 vm.ModelVm.ApplyStyleRequested -= ApplyStyleToPresenter;
-             }
-            base.OnDetachedFromVisualTree(e);
-        }
+        // Старые методы DataContextChanged и OnDetachedFromVisualTree больше не нужны,
+        // ReactiveUserControl и WhenActivated их заменяют для управления подписками.
     }
 }
-
-// Не забудьте дать имя вашему PotPresenter в CommonView.axaml:
-// <comp:PotPresenter x:Name="PotPresenter" ... />

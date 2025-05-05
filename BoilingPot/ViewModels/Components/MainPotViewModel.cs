@@ -1,20 +1,19 @@
-﻿using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿// ViewModels/Components/MainPotViewModel.cs
+using Avalonia.Media;
+using System.Diagnostics;
 
-namespace BoilingPot.ViewModels.Components;
-
-public partial class MainPotViewModel : ViewModelBase, IPotViewModel
+namespace BoilingPot.ViewModels.Components
 {
-    [ObservableProperty] private string? _potVolumeText; 
-    
-    [ObservableProperty] private string? _liquidTypeText;
-    
-    [ObservableProperty] private SolidColorBrush _liquidColor = new SolidColorBrush(Colors.Transparent);
-
-    public MainPotViewModel()
+    // Конкретная реализация ViewModel для основной темы кастрюли.
+    public partial class MainPotViewModel : PotViewModelBase // Наследуемся от PotViewModelBase
     {
-        PotVolumeText = "6.0 литров";
-        LiquidTypeText = "Вода";
-        LiquidColor = new SolidColorBrush(Colors.Aqua);
+        public MainPotViewModel()
+        {
+            // Устанавливаем значения для этой конкретной реализации
+            PotVolumeText = "6.0 литров (Main)";
+            LiquidTypeText = "Вода";
+            LiquidColor = Brushes.Aqua;
+            Debug.WriteLine(">>> MainPotViewModel СОЗДАН (RxUI)");
+        }
     }
 }

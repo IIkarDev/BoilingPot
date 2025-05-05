@@ -6,7 +6,7 @@
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="720"
              x:Class="BoilingPot.Views.Components.ControlPanelView"
-             x:DataType="vm:MainWindowViewModel"
+             x:DataType="vm:MainViewModel"
              Background="{DynamicResource MainAccentColor}">
     
     
@@ -32,28 +32,39 @@
                        PaneDisplayMode="LeftCompact"
                        OpenPaneLength="160"
                        CompactPaneLength="48"
-                       SelectedItem="{Binding SelectedNavigationViewItem}">
+                       SelectedItem="{Binding SelectedNavItem, Mode=TwoWay}">
 
         <ui:NavigationView.MenuItems>
-            <ui:NavigationViewItem Content="Домой" Tag="Home" >
+            <ui:NavigationViewItem Content="Домой" Tag="Home" 
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowHomeNavItem}">
                 <ui:NavigationViewItem.IconSource>
                     <ui:SymbolIconSource Symbol="Home" />
                 </ui:NavigationViewItem.IconSource>
             </ui:NavigationViewItem>
+            
+            <ui:NavigationViewItem Content="Данные" Tag="Data" 
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.IsDataPanelOnLeft}">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="ChevronLeft" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
 
-            <ui:NavigationViewItem Content="Загрузить" Tag="Load">
+            <ui:NavigationViewItem Content="Загрузить" Tag="Load"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowLoadNavItem}">
                 <ui:NavigationViewItem.IconSource>
                     <ui:SymbolIconSource Symbol="Open" />
                 </ui:NavigationViewItem.IconSource>
             </ui:NavigationViewItem>
 
-            <ui:NavigationViewItem Content="Сохранить" Tag="Save">
+            <ui:NavigationViewItem Content="Сохранить" Tag="Save"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowSaveNavItem}">
                 <ui:NavigationViewItem.IconSource>
                     <ui:SymbolIconSource Symbol="Bookmark" />
                 </ui:NavigationViewItem.IconSource>
             </ui:NavigationViewItem>
 
-            <ui:NavigationViewItem Content="Настройки" Tag="Settings">
+            <ui:NavigationViewItem Content="Настройки" Tag="Settings"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowSettingsNavItem}">
                 <ui:NavigationViewItem.IconSource>
                     <ui:SymbolIconSource Symbol="Settings" />
                 </ui:NavigationViewItem.IconSource>
@@ -62,13 +73,15 @@
         </ui:NavigationView.MenuItems>
 
         <ui:NavigationView.FooterMenuItems>
-            <ui:NavigationViewItem Content="О программе" Tag="About">
+            <ui:NavigationViewItem Content="О программе" Tag="About"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowAboutNavItem}">
                 <ui:NavigationViewItem.IconSource>
                     <ui:SymbolIconSource Symbol="Star" />
                 </ui:NavigationViewItem.IconSource>
             </ui:NavigationViewItem>
 
-            <ui:NavigationViewItem Tag="Exit" Content="Выход">
+            <ui:NavigationViewItem Tag="Exit" Content="Выход"
+                                   IsVisible="{Binding SettingsVM.GeneralSettings.ShowExitNavItem}">
                 <ui:NavigationViewItem.IconSource>
                     <ui:SymbolIconSource Symbol="Cancel" />
                 </ui:NavigationViewItem.IconSource>
@@ -127,11 +140,11 @@
                                          IsChecked="{Binding IsCommonViewSelected}" />
                             <RadioButton Content="Молекулярный вид"
                                          GroupName="ViewType"
-                                         IsChecked="{Binding IsMolecularViewSelected}" />
+                                         IsChecked="{Binding !IsCommonViewSelected}"/>
 
                             <Button Content="Показать хим. структуру"
                                     HorizontalAlignment="Left"
-                                    IsVisible="{Binding IsMolecularViewSelected}"
+                                    IsVisible="{Binding !IsCommonViewSelected}"
                                     Command="{Binding ShowStructureCommand}"
                                     Margin="0,8,0,0"
                                     Background="{DynamicResource MainAccentColor}" />

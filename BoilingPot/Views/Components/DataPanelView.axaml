@@ -6,7 +6,7 @@
              xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
              mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="600"
              x:Class="BoilingPot.Views.Components.DataPanelView"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:MainViewModel">
 
 
     <UserControl.Resources>
@@ -50,13 +50,14 @@
                 Width="40" Height="40"
                 CornerRadius="4"
                 Margin="16"
-                HorizontalAlignment="Right" VerticalAlignment="Top"
+                HorizontalAlignment="{Binding SettingsVM.GeneralSettings.DataPanelButtonHorAlignment}"
+                VerticalAlignment="{Binding SettingsVM.GeneralSettings.DataPanelButtonVerAlignment}"
                 Background="{DynamicResource MainAccentColor}"
                 BorderBrush="{DynamicResource AltAccentColor}"
                 BorderThickness="2"
                 ToolTip.Tip="Панель данных"
                 Command="{Binding ShowDataPanelCommand}">
-            <ui:SymbolIcon FontSize="24" Symbol="ChevronLeft" />
+            <ui:SymbolIcon FontSize="24" Symbol="{Binding SettingsVM.GeneralSettings.DataPanelButtonSymbol}" />
         </Button>
     </Grid>
 </UserControl>

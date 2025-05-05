@@ -1,21 +1,20 @@
-﻿// ViewModels/Components/IPotViewModel.cs
-using Avalonia.Media; // Для IBrush, если нужен цвет
-using CommunityToolkit.Mvvm.ComponentModel; // Для ObservableObject или просто как маркер
+﻿// ViewModels/Components/PotViewModelBase.cs
+
+using System.ComponentModel;
+using Avalonia.Media;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers; // Для [Reactive]
 
 namespace BoilingPot.ViewModels.Components
 {
-    // Используем ObservableObject, чтобы наследники могли легко реализовывать INPC
-    public partial class PotViewModelBase : ViewModelBase, IPotViewModel
+    // Базовый класс для ViewModel кастрюль.
+    // Наследуется от нашего общего ViewModelBase и реализует IPotViewModel.
+    public class PotViewModelBase: IPotViewModel
     {
-        [ObservableProperty]
-        private string? _potVolumeText = "N/A"; // Свойство для текста объема
-
-        // Можно добавить другие общие свойства (цвет жидкости и т.д.)
-        [ObservableProperty]
-        private string? _liquidTypeText;
-
-        [ObservableProperty]
-        private SolidColorBrush _liquidColor = new SolidColorBrush(Colors.Transparent);
+        // Используем [Reactive] для свойств интерфейса
+        [Reactive] public string? PotVolumeText { get; set; } = "N/A";
+        [Reactive] public string? LiquidTypeText { get; set; }
+        [Reactive] public IBrush LiquidColor { get; set; } = Brushes.Transparent;
+        
     }
-
 }

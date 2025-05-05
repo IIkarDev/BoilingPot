@@ -1,14 +1,16 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+﻿<!-- Views/AboutView.axaml -->
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:BoilingPot.ViewModels"
+             xmlns:vm="using:BoilingPot.ViewModels"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d"
              x:Class="BoilingPot.Views.AboutView"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:MainViewModel"> <!-- DataContext - MainViewModel -->
 
     <UserControl.Styles>
+        <!-- Стили для информационных текстов (можно вынести глобально) -->
         <Style Selector="TextBlock.SectionTitle">
             <Setter Property="FontSize" Value="18" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -24,30 +26,60 @@
             <Setter Property="Width" Value="150" />
             <Setter Property="Margin" Value="0,0,10,0" />
         </Style>
+         <!-- Стиль для кнопки закрытия (вынести глобально) -->
+         <Style Selector="Button.CloseButton">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+             <Setter Property="Transitions">
+                 <Transitions>
+                     <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                 </Transitions>
+             </Setter>
+        </Style>
+        <Style Selector="Button.CloseButton:pointerover /template/ ContentPresenter">
+             <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Button.CloseButton:pressed /template/ ContentPresenter">
+             <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}"/>
+        </Style>
     </UserControl.Styles>
 
+    <!-- Главный Grid для центрирования и наложения -->
     <Grid>
+        <!-- Полупрозрачный темный фон под панелью "О программе" -->
         <TextBlock Opacity="0.3" Background="#1C1C1C" />
+
+        <!-- Основная панель с рамкой и скруглением -->
         <Border Width="600" Height="500"
-                Background="{DynamicResource MainAccentColor}"
+                Background="{DynamicResource ThemeAccentColor}"
                 BorderBrush="{DynamicResource AltAccentColor}"
                 BorderThickness="3"
-                CornerRadius="24">
+                CornerRadius="24"
+                HorizontalAlignment="Center" VerticalAlignment="Center"> <!-- Центрируем панель -->
 
-            <Grid RowDefinitions="Auto,*" ColumnDefinitions="*">
+            <Grid RowDefinitions="Auto,*" ColumnDefinitions="*"> <!-- Grid для содержимого и кнопки -->
 
+                <!-- Скроллер для информационного текста -->
                 <ScrollViewer Grid.Row="0" Grid.RowSpan="2"
                               VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
-                              Padding="24,15,24,24"
-                              Foreground="White">
+                              Padding="24,15,24,24">
                     <StackPanel Spacing="10">
 
+                        <!-- Название приложения -->
                         <TextBlock Text="Boiling Pot"
                                    FontSize="32"
                                    FontWeight="Bold"
                                    HorizontalAlignment="Left" Margin="0,0,0,5" />
 
+                        <!-- Версия и Дата -->
                         <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,15">
                             <TextBlock Text="Версия:" />
                             <TextBlock Text="1.0.0" />
@@ -108,7 +140,7 @@
                         <StackPanel Spacing="5">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Веб-сайт" VerticalAlignment="Center" />
-                                <HyperlinkButton Content="меня любимого" NavigateUri="https://iikardev.com"
+                                <HyperlinkButton Content="меня любимого" NavigateUri="https://github.com/IIkarDev"
                                                  Foreground="Brown" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
@@ -135,10 +167,11 @@
                     </StackPanel>
                 </ScrollViewer>
 
+                <!-- Кнопка закрытия -->
                 <Button Grid.Row="0" Grid.Column="0"
                         Margin="20"
                         Classes="CloseButton"
-                        Command="{Binding ShowAboutCommand}"> <!-- !!! Нужна новая команда в VM !!! -->
+                        Command="{Binding ShowAboutCommand}"> <!-- Привязана к команде в MainViewModel -->
                     <ui:SymbolIcon Symbol="Dismiss" FontSize="20" />
                 </Button>
             </Grid>
