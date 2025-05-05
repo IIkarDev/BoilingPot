@@ -1,8 +1,8 @@
 # Boiling Pot 🧪🔥
 
-![Boiling Pot Logo](images/logo.png)
-
 A simulation and visualization application for the process of convection in liquids, built using the modern cross-platform UI framework, Avalonia UI. The project demonstrates advanced architectural patterns like MVVM and DI, along with the ability to dynamically change the appearance of UI elements.
+
+
 
 ![Boiling Pot Screenshot](images/Preview.png)
 
@@ -123,7 +123,6 @@ The project is built using modern architectural approaches like MVVM and DI in c
 ## 📄 License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-<!-- Or specify your license -->
 
 ---
 
@@ -136,3 +135,6 @@ A big thank you to:
 *   The **Microsoft.Extensions.Hosting** and **DependencyInjection** teams for the standard and flexible DI implementation.
 *   (If used) The **FluentAvaloniaUI** team for the stylish Fluent Design implementation.
 *   (And of course) **All contributors** to the Boiling Pot project!
+  
+  ![Boiling Pot Logo](images/logo.png)
+
