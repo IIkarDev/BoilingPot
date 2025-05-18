@@ -1,0 +1,198 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:BoilingPot.Views.Components"
+        xmlns:vm="clr-namespace:BoilingPot.ViewModels.Components"
+        x:DataType="vm:StoveViewModelBase">
+
+    <Style Selector="local|StovePresenter" x:DataType="vm:StoveViewModelBase">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Canvas Width="220" Height="260">
+
+                    <!-- Основной корпус плиты (темно-серый/стальной) -->
+                    <Rectangle Fill="#4A4A4A"
+                               Width="200" Height="250"
+                               Canvas.Left="10" Canvas.Top="10"
+                               RadiusX="5" RadiusY="5" />
+
+                    <!-- Верхняя панель управления (светлее) -->
+                    <Rectangle Fill="#D0D0D0"
+                               Width="200" Height="50"
+                               Canvas.Left="10" Canvas.Top="10"
+                               RadiusX="5" RadiusY="0" /> <!-- Только верхние углы скруглены -->
+                    <Border Canvas.Left="10" Canvas.Top="59"
+                            Width="200" Height="2" Background="#333333" /> <!-- Разделительная линия -->
+
+
+                    <!-- Ручки управления (4 штуки) -->
+                    <Ellipse Fill="#2C2C2C" Width="25" Height="25" Canvas.Left="25" Canvas.Top="22.5" />
+                    <Ellipse Fill="#1E1E1E" Width="18" Height="18" Canvas.Left="28.5" Canvas.Top="26" />
+                    <Path Data="M 0 0 L 4 0" Stroke="White" StrokeThickness="1.5" Canvas.Left="35.5" Canvas.Top="20" />
+
+                    <Ellipse Fill="#2C2C2C" Width="25" Height="25" Canvas.Left="60" Canvas.Top="22.5" />
+                    <Ellipse Fill="#1E1E1E" Width="18" Height="18" Canvas.Left="63.5" Canvas.Top="26" />
+                    <Path Data="M 0 0 L 4 0" Stroke="White" StrokeThickness="1.5" Canvas.Left="70.5" Canvas.Top="20"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="30" />
+                        </Path.RenderTransform>
+                    </Path>
+
+                    <Ellipse Fill="#2C2C2C" Width="25" Height="25" Canvas.Left="135" Canvas.Top="22.5" />
+                    <Ellipse Fill="#1E1E1E" Width="18" Height="18" Canvas.Left="138.5" Canvas.Top="26" />
+                    <Path Data="M 0 0 L 4 0" Stroke="White" StrokeThickness="1.5" Canvas.Left="145.5" Canvas.Top="20"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="-45" />
+                        </Path.RenderTransform>
+                    </Path>
+
+                    <Ellipse Fill="#2C2C2C" Width="25" Height="25" Canvas.Left="170" Canvas.Top="22.5" />
+                    <Ellipse Fill="#1E1E1E" Width="18" Height="18" Canvas.Left="173.5" Canvas.Top="26" />
+                    <Path Data="M 0 0 L 4 0" Stroke="White" StrokeThickness="1.5" Canvas.Left="180.5" Canvas.Top="20"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="90" />
+                        </Path.RenderTransform>
+                    </Path>
+
+                    <!-- Варочная поверхность (над панелью управления) -->
+                    <!-- Можно оставить место для конфорок из вашего предыдущего дизайна -->
+                    <Rectangle Fill="#303030"
+                               Width="190" Height="2"
+                               Canvas.Left="15" Canvas.Top="60" />
+
+                    <!-- Дверца Духовки -->
+                    <Rectangle Fill="#3D3D3D"
+                               Width="180" Height="140"
+                               Canvas.Left="20" Canvas.Top="80"
+                               RadiusX="3" RadiusY="3" />
+
+                    <!-- Стекло дверцы духовки -->
+                    <Border Width="160" Height="100"
+                            Canvas.Left="30" Canvas.Top="95"
+                            CornerRadius="3"
+                            ClipToBounds="True"> <!-- Обрезаем содержимое по скруглению -->
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#A0B0C0D0" Offset="0.0" /> <!-- Полупрозрачный голубоватый -->
+                                <GradientStop Color="#A0405060" Offset="1.0" /> <!-- Полупрозрачный темно-синий -->
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <StackPanel>
+                            <Rectangle Fill="#50FFFFFF" Width="160" Height="10" VerticalAlignment="Top"
+                                       Margin="0,10,0,0" />
+                            <Rectangle Fill="#30FFFFFF" Width="160" Height="5" VerticalAlignment="Top"
+                                       Margin="0,25,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Ручка дверцы духовки -->
+                    <Rectangle Fill="#C0C0C0"
+                               Width="140" Height="15"
+                               Canvas.Left="40" Canvas.Top="70"
+                               RadiusX="3" RadiusY="3" />
+                    <Rectangle Fill="#A9A9A9" Width="130" Height="7" RadiusX="2" RadiusY="2" Canvas.Left="45"
+                               Canvas.Top="74" />
+
+
+                    <!-- Конфорка (сверху, одна для примера) + Огонь -->
+                    <!-- Позиционируем ее на варочной поверхности -->
+                    <Canvas Canvas.Left="75" Canvas.Top="5"> <!-- Сдвигаем всю конфорку с огнем -->
+                        <!-- Сама конфорка (как раньше) -->
+                        <Ellipse Fill="DarkSlateGray" Stroke="Black" StrokeThickness="1" Width="70" Height="25"
+                                 Canvas.Left="0" Canvas.Top="0" />
+                        <Ellipse Stroke="Gray" StrokeThickness="1.5" Width="50" Height="15" Canvas.Left="10"
+                                 Canvas.Top="5" />
+                        <Ellipse Fill="#1E1E1E" Width="30" Height="10" Canvas.Left="20" Canvas.Top="7.5" />
+
+                        <!-- Огонь (один язычок для примера, можно добавить больше, как в старом коде) -->
+                        <!-- Предполагается, что свойство FlameIntensity (0.0-1.0) есть в StoveViewModelBase -->
+                        <!-- и оно управляет высотой/видимостью огня -->
+                        <Path StrokeThickness="0" Opacity="{Binding }"
+                              Canvas.Left="15" Canvas.Top="-20" RenderTransformOrigin="0.5,1">
+                            <Path.RenderTransform>
+                                <!-- Масштабируем высоту огня -->
+                                <ScaleTransform ScaleY="{Binding }" />
+                            </Path.RenderTransform>
+                            <Path.Fill>
+                                <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
+                                    <GradientStop Color="Orange" Offset="0.0" />
+                                    <GradientStop Color="OrangeRed" Offset="0.7" />
+                                    <GradientStop Color="Red" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Path.Fill>
+                            <Path.Data>
+                                <PathGeometry
+                                    Figures="M 0,20 Q 5,10 10,20 Q 15,-5 20,20 L 25,20 Q 30,10 35,20 Q 40,0 40,20 Z" />
+                            </Path.Data>
+                        </Path>
+                    </Canvas>
+
+                    <Rectangle Fill="#2C2C2C" Width="10" Height="8" Canvas.Left="15" Canvas.Top="252" />
+                    <Rectangle Fill="#2C2C2C" Width="10" Height="8" Canvas.Left="195" Canvas.Top="252" />
+
+
+                    <Path StrokeThickness="0" Canvas.Left="115" Canvas.Top="15" RenderTransformOrigin="0.5,1">
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="-10" />
+                        </Path.RenderTransform>
+                        <Path.Fill>
+                            <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
+                                <GradientStop Color="Orange" Offset="0.0" />
+                                <GradientStop Color="OrangeRed" Offset="0.7" />
+                                <GradientStop Color="Red" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Path.Fill>
+                        <Path.Data>
+                            <PathGeometry Figures="M 0,30 Q 5,15 10,30 Q 15,0 20,30 Z" />
+                        </Path.Data>
+                    </Path>
+                    <Path StrokeThickness="0" Canvas.Left="100" Canvas.Top="18" RenderTransformOrigin="0.5,1">
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="5" />
+                        </Path.RenderTransform>
+                        <Path.Fill>
+                            <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
+                                <GradientStop Color="Yellow" Offset="0.0" />
+                                <GradientStop Color="Orange" Offset="0.6" />
+                                <GradientStop Color="OrangeRed" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Path.Fill>
+                        <Path.Data>
+                            <PathGeometry Figures="M 0,25 Q 4,12 8,25 Q 12,-5 16,25 Z" />
+                        </Path.Data>
+                    </Path>
+                    <Path StrokeThickness="0" Canvas.Left="130" Canvas.Top="20" RenderTransformOrigin="0.5,1">
+                        <Path.RenderTransform>
+                            <RotateTransform Angle="15" />
+                        </Path.RenderTransform>
+                        <Path.Fill>
+                            <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
+                                <GradientStop Color="Orange" Offset="0.0" />
+                                <GradientStop Color="Red" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Path.Fill>
+                        <Path.Data>
+                            <PathGeometry Figures="M 0,22 Q 3,10 6,22 Q 9,5 12,22 Z" />
+                        </Path.Data>
+                    </Path>
+                    <!-- <Ellipse Fill="Black" Stroke="Gray" StrokeThickness="1" Width="20" Height="20" Canvas.Left="215" -->
+                    <!--          Canvas.Top="100"> -->
+                    <!--     <Ellipse.Effect> -->
+                    <!--         <DropShadowEffect BlurRadius="2" Color="Black" Opacity="0.5" /> -->
+                    <!--     </Ellipse.Effect> -->
+                    <!-- </Ellipse> -->
+                    <!-- <Rectangle Fill="White" Width="2" Height="5" Canvas.Left="224" Canvas.Top="102" -->
+                    <!--            RenderTransformOrigin="0.5,0.5"> -->
+                    <!--     <Rectangle.RenderTransform> -->
+                    <!--         <RotateTransform Angle="-30" /> -->
+                    <!--     </Rectangle.RenderTransform> -->
+                    <!-- </Rectangle> -->
+
+                </Canvas>
+
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

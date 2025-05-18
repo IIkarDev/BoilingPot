@@ -12,7 +12,6 @@
              x:DataType="vm:MainViewModel">
 
     <UserControl.Styles>
-        <!-- Стиль для волн (не менялся) -->
         <Style Selector="Path.Wave1">
             <Setter Property="Opacity" Value="0.6" />
             <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />

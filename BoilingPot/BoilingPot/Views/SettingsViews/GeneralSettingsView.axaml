@@ -41,6 +41,7 @@
             <HeaderedContentControl Header="Отображать кнопку вызова панели">
                 <ToggleSwitch
                     IsChecked="{Binding ShowDataPanelButton}"
+                    IsEnabled="{Binding ShowDataPanelButton}"
                     OnContent="Вкл" OffContent="Выкл" />
             </HeaderedContentControl>
 
@@ -52,7 +53,7 @@
                     HorizontalAlignment="Stretch" />
             </HeaderedContentControl>
 
-            <HeaderedContentControl Header="Разместить панель данных слева">
+            <HeaderedContentControl Header="Разместить панель в навигационном меню">
                 <ToggleSwitch
                     ToolTip.Tip="По умолчанию панель данных справа"
                     IsChecked="{Binding IsDataPanelOnLeft}"

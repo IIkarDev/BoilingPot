@@ -15,7 +15,6 @@
             <!-- Подключаем наши словари с цветами акцентов -->
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://BoilingPot/Resources/Palettes/DefaultAccentPalette.axaml"/>
-                <!-- При необходимости можно загружать другие палитры динамически -->
             </ResourceDictionary.MergedDictionaries>
 
              <!-- Определения кистей для тем (как было у вас) -->
@@ -49,7 +48,7 @@
 
         <!-- Подключаем глобальные стили, если есть -->
          <StyleInclude Source="avares://BoilingPot/Styles/HeaderContentControlStyle.axaml"/>
-         <!-- <StyleInclude Source="avares://BoilingPot/Styles/ButtonStyles.axaml"/> -->
+         <!-- <StyleInclude Source="avares://BoilingPot/Resources/Components/MainPotTheme.axaml"/> -->
     </Application.Styles>
 
     

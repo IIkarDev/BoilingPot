@@ -36,18 +36,7 @@ namespace BoilingPot.Views
         this.WhenActivated(disposables =>
         {
             Debug.WriteLine($"[{this.GetType().Name}] АКТИВИРОВАН. HashCode: {this.GetHashCode()}");
-
-            // --- 1. Подписка на ModelVm и вызов его InitializeAsync ---
-            ViewModel.WhenAnyValue(x => x.ModelVm)
-                .Where(modelVm => modelVm != null)
-                .SelectMany(async vm => // <<< async лямбда, возвращает Task<Unit>
-                {
-                    Debug.WriteLine($"[{this.GetType().Name}] WhenActivated: Вызов ViewModel.ModelVm.InitializeAsync().");
-                    await vm!.InitializeAsync(); // <<< await здесь
-                    return Unit.Default; // <<< Возвращаем Unit.Default
-                })
-                .Subscribe() // Подписываемся на этот Task
-                .DisposeWith(disposables); // Автоматическая отписка
+            
 
             // --- 2. Подписка на ModelVm и настройка обработчика Interaction ---
             ViewModel.WhenAnyValue(x => x.ModelVm) // Подписываемся на изменение ModelVm
@@ -56,24 +45,7 @@ namespace BoilingPot.Views
                  {
                      // Настраиваем обработчик Interaction, когда ModelVm доступен
                      Debug.WriteLine($"[{this.GetType().Name}] Настройка обработчика ApplyStyleInteraction для ModelVm типа {modelVm.GetType().Name}.");
-
-                     modelVm!.ApplyStyleInteraction.RegisterHandler(
-                         // !!! Асинхронная лямбда для RegisterHandler !!!
-                         async interaction => // <<< async и возвращает Task<Unit>
-                         {
-                             Debug.WriteLine($"[{this.GetType().Name}] Получен Handle для ApplyStyleInteraction. Цель: {interaction.Input.Item2}, Стиль IsNull: {interaction.Input.Item1 == null}");
-
-                             // Получаем данные
-                             var styleData = interaction.Input;
-
-                             // Вызываем асинхронный метод применения стиля и ОЖИДАЕМ его
-                             await ApplyStyleToPresenter(styleData.Item1, styleData.Item2);
-
-                             // Сообщаем, что обработали, возвращая Unit.Default
-                             // return Unit.Default; // <<< Возвращаем Unit.Default
-                         })
-                         .DisposeWith(disposables); // <<< Автоматическая отписка обработчика
-
+                     
                       Debug.WriteLine($"[{this.GetType().Name}] WhenActivated: Обработчик Interaction для стилей настроен.");
                  })
                  .DisposeWith(disposables); // Автоматическая отписка от подписки на ModelVm

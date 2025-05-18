@@ -61,12 +61,9 @@
 
             <!-- Панель данных DataPanelView -->
             <!-- Привязываем DataContext, если у нее свой VM, или оставляем, чтобы унаследовала MainVM -->
-            <ContentControl Grid.Column="1"
-                IsVisible="{Binding !IsHomeViewSelected}">
-                <ContentControl IsVisible="{Binding !SettingsVM.GeneralSettings.IsDataPanelOnLeft}">
-                    <components:DataPanelView IsVisible="{Binding SettingsVM.GeneralSettings.ShowDataPanelButton}"/>
-                </ContentControl>
-            </ContentControl>
+
+            <components:DataPanelView Grid.Column="1" IsVisible="{Binding !IsHomeViewSelected}"/>
+
 
 
             <!-- Панель "О программе" AboutView -->

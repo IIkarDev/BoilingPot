@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics; // Для Debug
 using System.Reactive; // Для Unit
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using Avalonia.Layout;
 using FluentAvalonia.UI.Controls; // Для WhenAnyValue
 
@@ -25,6 +26,7 @@ namespace BoilingPot.ViewModels.SettingsViewModels
         [Reactive] public bool ShowDataPanelButton { get; set; } = true; // Флаг отображения кнопки панели
         [Reactive] public HorizontalAlignment DataPanelButtonHorAlignment { get; set; } = HorizontalAlignment.Right; // Положение кнопки
         [Reactive] public VerticalAlignment DataPanelButtonVerAlignment { get; set; } = VerticalAlignment.Top; // Положение кнопки
+        [Reactive] public SplitViewPanePlacement DataPanePlacement{ get; set; } = SplitViewPanePlacement.Right;
         [Reactive] public Symbol DataPanelButtonSymbol { get; set; } = Symbol.ChevronLeft;
         [Reactive] public string SelectedDataPanelButtonPosition { get; set; } = "Верхний правый угол"; // Положение кнопки
         [Reactive] public bool IsDataPanelOnLeft { get; set; } // Положение панели
@@ -49,7 +51,7 @@ namespace BoilingPot.ViewModels.SettingsViewModels
         public GeneralSettingsViewModel()
         {
              Debug.WriteLine("[GeneralSettingsVM] Конструктор RxUI: Начало");
-
+             
              this.WhenAnyValue(x => x.SelectedDataPanelButtonPosition)
                  .Subscribe(selectedDataPanelButtonPosition => // Выполняем действие при получении нового Tag
                  {
@@ -58,22 +60,27 @@ namespace BoilingPot.ViewModels.SettingsViewModels
                          case "Верхний правый угол": 
                              DataPanelButtonHorAlignment = HorizontalAlignment.Right;
                              DataPanelButtonVerAlignment = VerticalAlignment.Top;
+                             DataPanePlacement = SplitViewPanePlacement.Right;
                              DataPanelButtonSymbol = Symbol.ChevronLeft; break;
                          case "Нижний правый угол": 
                              DataPanelButtonHorAlignment = HorizontalAlignment.Right;
                              DataPanelButtonVerAlignment = VerticalAlignment.Bottom;
+                             DataPanePlacement = SplitViewPanePlacement.Right;
                              DataPanelButtonSymbol = Symbol.ChevronLeft; break;
                          case "Верхний левый угол": 
                              DataPanelButtonHorAlignment = HorizontalAlignment.Left;
                              DataPanelButtonVerAlignment = VerticalAlignment.Top;
+                             DataPanePlacement = SplitViewPanePlacement.Left;
                              DataPanelButtonSymbol = Symbol.ChevronRight; break;
                          case "Нижний левый угол": 
                              DataPanelButtonHorAlignment = HorizontalAlignment.Left;
                              DataPanelButtonVerAlignment = VerticalAlignment.Bottom; 
+                             DataPanePlacement = SplitViewPanePlacement.Left;
                              DataPanelButtonSymbol = Symbol.ChevronRight; break;
                         default:
                              DataPanelButtonHorAlignment = HorizontalAlignment.Right;
                              DataPanelButtonVerAlignment = VerticalAlignment.Top; 
+                             DataPanePlacement = SplitViewPanePlacement.Right;
                              DataPanelButtonSymbol = Symbol.ChevronLeft; break;
                      }
                  });
@@ -89,7 +96,12 @@ namespace BoilingPot.ViewModels.SettingsViewModels
 
             // Подписываемся на изменение положения панели
              this.WhenAnyValue(x => x.IsDataPanelOnLeft)
-                  .Subscribe(isOnLeft => Debug.WriteLine($"[GeneralSettingsVM] Панель данных слева: {isOnLeft}"));
+                  .Subscribe(isOnLeft =>
+                  {
+                      DataPanePlacement = isOnLeft ? SplitViewPanePlacement.Left : SplitViewPanePlacement.Right;
+                      ShowDataPanelButton = !isOnLeft;
+                      Debug.WriteLine($"[GeneralSettingsVM] Панель данных слева: {isOnLeft}");
+                  });
 
 
             // TODO: Добавить логику загрузки/сохранения настроек при инициализации или при вызове команды "Сохранить" в SettingsViewModel

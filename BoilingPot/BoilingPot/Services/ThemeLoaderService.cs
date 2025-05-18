@@ -15,7 +15,7 @@ namespace BoilingPot.Services
     public class ThemeLoaderService : IThemeLoaderService
     {
         // Реализация метода загрузки стиля из файла на диске.
-        public IStyle? LoadStyleFromFile(string filePath)
+        public Styles? LoadStyleFromFile(string filePath)
         {
             Debug.WriteLine($"--- ThemeLoaderService: Начинаем загрузку стиля из файла: {filePath} ---");
 
@@ -42,7 +42,7 @@ namespace BoilingPot.Services
                 {
                     Debug.WriteLine("--- ThemeLoaderService: Распарсен как <Styles>.");
                     // Ищем ControlTheme внутри коллекции стилей (если нужен именно он)
-                    var controlTheme = styles.OfType<ControlTheme>().FirstOrDefault();
+                    var controlTheme = styles.OfType<Styles>().FirstOrDefault();
                     if (controlTheme != null)
                     {
                          Debug.WriteLine("--- ThemeLoaderService: Найден ControlTheme внутри <Styles>.");
@@ -51,13 +51,13 @@ namespace BoilingPot.Services
                     // Если ControlTheme не найден, берем первый попавшийся стиль (если он есть)
                     var firstStyle = styles.FirstOrDefault();
                     if (firstStyle != null) Debug.WriteLine("--- ThemeLoaderService: ControlTheme не найден, взят первый стиль из <Styles>.");
-                    return firstStyle; // Возвращаем первый стиль из коллекции
+                    return (Styles)firstStyle!; // Возвращаем первый стиль из коллекции
 
                 }
                 else if (loadedObject is IStyle style) // Если корневой элемент был <Style> или <ControlTheme>
                 {
                     Debug.WriteLine($"--- ThemeLoaderService: Распарсен как корневой стиль/тема: {style.GetType().Name}");
-                    return style; // Возвращаем сам корневой стиль
+                    return loadedObject as Styles; // Возвращаем сам корневой стиль
                 }
                 else
                 {

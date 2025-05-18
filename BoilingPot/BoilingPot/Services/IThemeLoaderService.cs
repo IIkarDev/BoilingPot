@@ -13,7 +13,7 @@ namespace BoilingPot.Services
         // Принимает полный путь к файлу на диске.
         // Возвращает загруженный стиль (IStyle) или null, если файл не найден,
         // не является валидным XAML стилем, или произошла ошибка при парсинге.
-        IStyle? LoadStyleFromFile(string filePath);
+        Styles? LoadStyleFromFile(string filePath);
 
         // Возможно, добавить методы для загрузки стилей из ресурсов приложения (avares://)
         // IStyle? LoadStyleFromResource(Uri resourceUri);

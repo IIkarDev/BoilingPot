@@ -45,7 +45,7 @@
             <ui:NavigationViewItem Content="Данные" Tag="Data" 
                                    IsVisible="{Binding SettingsVM.GeneralSettings.IsDataPanelOnLeft}">
                 <ui:NavigationViewItem.IconSource>
-                    <ui:SymbolIconSource Symbol="ChevronLeft" />
+                    <ui:SymbolIconSource Symbol="ChevronRight" />
                 </ui:NavigationViewItem.IconSource>
             </ui:NavigationViewItem>
 
@@ -98,9 +98,9 @@
 
                         <HeaderedContentControl Header="Скорость процессов:">
                             <StackPanel>
-                                <Slider Minimum="0" Maximum="100" Value="{Binding ProcessSpeed}"
+                                <Slider Minimum="0" Maximum="5" Value="{Binding ProcessSpeed}"
                                         TickFrequency="10" TickPlacement="BottomRight" />
-                                <TextBlock Text="{Binding ProcessSpeed, StringFormat=Скорость 0 ед}"
+                                <TextBlock Text="{Binding ProcessSpeed, StringFormat=Скорость x0.0}"
                                            HorizontalAlignment="Right" />
                             </StackPanel>
                         </HeaderedContentControl>

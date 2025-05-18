@@ -23,20 +23,22 @@ private static void ConfigureDependencies(IServiceCollection services)
     
     // --- Регистрация ViewModel Компонентов ---
     // Debug.WriteLine("[App] ConfigureDependencies: Регистрация PotViewModelBase, MainPotViewModel, AltPotViewModel.");
-    services.AddTransient<PotViewModelBase>(); // Базовый
-    // services.AddTransient<MainPotViewModel>(); // Конкретный
-    // services.AddTransient<AltPotViewModel>();  // Конкретный
-    //
+    services.AddSingleton<PotViewModelBase>(); // MainPotViewModel - реализация по умолчанию
+// Если хочешь регистрировать по интерфейсу IPotViewModel как синглтон
+    services.AddSingleton<IPotViewModel>(sp => sp.GetRequiredService<PotViewModelBase>()); 
+    services.AddTransient<StoveViewModelBase>();
+
+    
     // // ViewModel секций настроек (Transient)
     // Debug.WriteLine("[App] ConfigureDependencies: Регистрация ViewModel секций настроек.");
     services.AddTransient<GeneralSettingsViewModel>();
     services.AddTransient<ThemeSettingsViewModel>();
     services.AddTransient<AboutViewModel>();
-    services.AddTransient<ModelSettingsViewModel>(); // <--- Его конструктор имеет зависимости
+    services.AddSingleton<ModelSettingsViewModel>(); // <--- Его конструктор имеет зависимости
     //
     // // Основные ViewModel (Singleton)
     // Debug.WriteLine("[App] ConfigureDependencies: Регистрация SettingsViewModel (Singleton).");
-    services.AddSingleton<SettingsViewModel>(); // <--- Его конструктор имеет зависимости
+    services.AddTransient<SettingsViewModel>(); // <--- Его конструктор имеет зависимости
     //
     // Debug.WriteLine("[App] ConfigureDependencies: Регистрация CommonViewModel, MolecularViewModel, HomeViewModel.");
     services.AddTransient<CommonViewModel>();
@@ -49,18 +51,7 @@ private static void ConfigureDependencies(IServiceCollection services)
     // Окна (Transient)
     Debug.WriteLine("[App] ConfigureDependencies: Регистрация MainWindow.");
     services.AddTransient<MainWindow>();
-
-    // Регистрация Views для ViewLocator Splat
-     // Debug.WriteLine("[App] ConfigureDependencies: Регистрация Views для ViewLocator.");
-     // services.AddTransient<IViewFor<HomeViewModel>, Views.HomeView>();
-     services.AddTransient<IViewFor<CommonViewModel>, Views.CommonView>();
-     services.AddTransient<IViewFor<MolecularViewModel>, Views.MolecularView>();
-     // services.AddTransient<IViewFor<SettingsViewModel>, Views.SettingsView>();
-     // services.AddTransient<IViewFor<AboutViewModel>, Views.AboutView>(); // Убедитесь, что AboutViewModel существует
-     // services.AddTransient<IViewFor<GeneralSettingsViewModel>, Views.SettingsViews.GeneralSettingsView>();
-     // services.AddTransient<IViewFor<ThemeSettingsViewModel>, Views.SettingsViews.ThemeSettingsView>();
-     // services.AddTransient<IViewFor<ModelSettingsViewModel>, Views.SettingsViews.ModelSettingsView>();
-     //
+    
     services.UseMicrosoftDependencyResolver();
     Debug.WriteLine("[Program.ConfigureDependencies] Application services registered.");
 }

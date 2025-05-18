@@ -1,0 +1,81 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:BoilingPot.Views.Components"
+        xmlns:vm="clr-namespace:BoilingPot.ViewModels.Components"
+        x:DataType="vm:StoveViewModelBase"> 
+
+    <Style Selector="local|StovePresenter" x:DataType="vm:StoveViewModelBase" >
+        <Setter Property="Template">
+            <ControlTemplate>
+          <Canvas Width="220" Height="260"> <!-- Общий холст -->
+
+                        <!-- 1. Столик (Основание) -->
+                        <!-- Ножки столика -->
+                        <Rectangle Fill="#696969" Width="12" Height="180" Canvas.Left="15" Canvas.Top="80" RadiusX="3" RadiusY="3"/>
+                        <Rectangle Fill="#696969" Width="12" Height="180" Canvas.Left="193" Canvas.Top="80" RadiusX="3" RadiusY="3"/>
+                        <!-- Задние ножки (чуть темнее для глубины) -->
+                        <Rectangle Fill="#505050" Width="10" Height="175" Canvas.Left="18" Canvas.Top="82" RadiusX="3" RadiusY="3"/>
+                        <Rectangle Fill="#505050" Width="10" Height="175" Canvas.Left="191" Canvas.Top="82" RadiusX="3" RadiusY="3"/>
+
+                        <!-- Столешница (толстая) -->
+                        <Rectangle Fill="#A0522D" Width="220" Height="25" RadiusX="4" RadiusY="4" Canvas.Left="0" Canvas.Top="60"/>
+                        <!-- Передняя грань столешницы (чуть светлее) -->
+                        <Rectangle Fill="#B87333" Width="220" Height="5" Canvas.Left="0" Canvas.Top="80" RadiusX="0" RadiusY="3"/>
+
+
+                        <!-- 2. Индукционная Плита (на столике) -->
+                        <!-- Основной корпус плиты (тонкий, темно-стеклянный) -->
+                        <Border Width="190" Height="35" Canvas.Left="15" Canvas.Top="15" 
+                                CornerRadius="5" ClipToBounds="True">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                    <GradientStop Color="#282828" Offset="0.0"/>
+                                    <GradientStop Color="#1E1E1E" Offset="0.7"/>
+                                    <GradientStop Color="#181818" Offset="1.0"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <!-- Тонкая металлическая рамка по краям -->
+                            <Border BorderBrush="#707070" BorderThickness="2"/>
+                        </Border>
+
+                        <!-- Конфорка (круг, меняющий цвет при нагреве) -->
+                        <!-- Располагаем по центру варочной панели -->
+                        <Ellipse Name="BurnerEllipse"
+                                 Width="100" Height="40"
+                                 Canvas.Left="60" Canvas.Top="-35" 
+                                 Stroke="#505050" StrokeThickness="2"
+                                 StrokeDashArray="4"> <!-- Пунктирная линия для обозначения конфорки -->
+                            <Ellipse.Fill>
+                                <!-- Изначально темно-серый, почти черный -->
+                                <!-- Цвет будет меняться через анимацию или привязку -->
+                                <SolidColorBrush Color="#202020"/>
+                            </Ellipse.Fill>
+                            <!-- Плавный переход цвета -->
+                            <!-- <Ellipse.Transitions> -->
+                            <!--     <BrushTransition Property="Fill" Duration="0:0:0.8" Easing="CubicEaseInOut"/> -->
+                            <!-- </Ellipse.Transitions> -->
+                        </Ellipse>
+
+                        <!-- Сенсорные кнопки управления (имитация) -->
+                        <StackPanel Orientation="Horizontal" Spacing="15"
+                                    Canvas.Left="45" Canvas.Top="50"> <!-- На панели плиты -->
+                            <Ellipse Fill="{DynamicResource SystemAccentColor}" Width="15" Height="15" Opacity="0.7"/>
+                            <Rectangle Fill="#FF6347" Width="25" Height="10" RadiusX="3" RadiusY="3" Opacity="0.7"/>
+                            <Ellipse Fill="{DynamicResource SystemAccentColor}" Width="15" Height="15" Opacity="0.7"/>
+                            <Rectangle Fill="#FF6347" Width="25" Height="10" RadiusX="3" RadiusY="3" Opacity="0.7"/>
+                        </StackPanel>
+                        
+                        <!-- Маленький индикатор питания/нагрева (меняет цвет) -->
+                        <Ellipse Name="IndicatorLight" Width="8" Height="8" Fill="DarkGray"
+                                 Canvas.Left="20" Canvas.Top="45"/>
+
+
+                        <!-- Анимация для конфорки и индикатора (в стилях плиты) -->
+                        <!-- Это пример XAML анимации, но лучше управлять цветом из ViewModel -->
+                        <!-- через привязку к Fill конфорки и индикатора -->
+
+                    </Canvas>
+                </ControlTemplate>
+            </Setter>
+    </Style>
+</Styles>

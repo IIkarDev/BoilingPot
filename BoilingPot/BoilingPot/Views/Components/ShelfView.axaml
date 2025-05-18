@@ -1,0 +1,47 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="50"
+             x:Class="BoilingPot.Views.Components.ShelfView">
+    
+    <Canvas Width="200" Height="50"> 
+
+        <Path Name="SideFace" StrokeThickness="1" Stroke="SaddleBrown">
+            <Path.Fill>
+                <SolidColorBrush Color="#7A5230"/> 
+            </Path.Fill>
+            <Path.Data>
+                <PathGeometry Figures="M 180,20 L 195,0 L 195,30 L 180,50 Z"/>
+            </Path.Data>
+        </Path>
+        
+        <Path Name="FrontFace" StrokeThickness="1" Stroke="SaddleBrown">
+            <Path.Fill>
+                 <SolidColorBrush Color="#654321"/>
+            </Path.Fill>
+            <Path.Data>
+                <PathGeometry Figures="M 0,50 L 180,50 L 180,20 L 0,20 Z"/>
+            </Path.Data>
+        </Path>
+        
+        <Path Name="TopSurface" StrokeThickness="1" Stroke="SaddleBrown">
+            <Path.Fill>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="#C0A080" Offset="0.0"/> 
+                    <GradientStop Color="#A08060" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Path.Fill>
+            <Path.Data>
+                <PathGeometry Figures="M 0,20 L 180,20 L 195,0 L 15,0 Z"/>
+            </Path.Data>
+        </Path>
+
+        <TextBlock Text="Полка"
+                   Foreground="White" 
+                   FontSize="20" 
+                   Canvas.Left="64" Canvas.Top="20"> 
+        </TextBlock>
+
+    </Canvas>
+</UserControl>

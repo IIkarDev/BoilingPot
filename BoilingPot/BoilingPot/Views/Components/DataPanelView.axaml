@@ -3,61 +3,138 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:BoilingPot.ViewModels"
-             xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
-             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="600"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600" 
              x:Class="BoilingPot.Views.Components.DataPanelView"
-             x:DataType="vm:MainViewModel">
-
+             x:DataType="vm:MainViewModel"> <!-- DataContext наследуется от MainWindow -->
 
     <UserControl.Resources>
-        <LinearGradientBrush x:Key="PanelBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <!-- Градиентный фон для панели -->
+        <LinearGradientBrush x:Key="DataPanelBackgroundBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <!-- Используем цвета из ресурсов, если они определены, или задаем явно -->
             <GradientStop Color="{DynamicResource MainAccentColor}" Offset="0.0" />
-            <GradientStop Color="#1C1C1C" Offset="1.0" />
+            <GradientStop Color="#AA1C1C1C" Offset="1.0" /> <!-- Полупрозрачный темный -->
         </LinearGradientBrush>
     </UserControl.Resources>
+    
+    <UserControl.Styles>
+        <!-- Стиль для метки параметра -->
+        <Style Selector="TextBlock.DataLabel">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Opacity" Value="0.8"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <!-- Стиль для значения параметра -->
+        <Style Selector="TextBlock.DataValue">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <!-- Стиль для разделителя -->
+        <Style Selector="Border.Separator">
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Background" Value="{DynamicResource AltAccentColor}"/>
+            <Setter Property="Opacity" Value="0.3"/>
+            <Setter Property="Margin" Value="0,8"/>
+        </Style>
+    </UserControl.Styles>
 
+    <!-- Главный Grid для позиционирования SplitView и кнопки -->
     <Grid>
+        <!-- SplitView для выдвигающейся панели -->
         <SplitView Name="DataSplitView"
-                   BorderThickness="2"
-                   PanePlacement="Right"
+                   BorderThickness="0" 
+                   PanePlacement="{Binding SettingsVM.GeneralSettings.DataPanePlacement}" 
                    IsPaneOpen="{Binding IsShowingDataPanel}"
                    DisplayMode="CompactOverlay"
-                   OpenPaneLength="300"
+                   OpenPaneLength="280" 
                    CompactPaneLength="0"
                    Margin="8"
-                   PaneBackground="Transparent">
+                   PaneBackground="Transparent"> <!-- Фон панели будет у внутреннего Border -->
 
-
+            <!-- Содержимое выдвигающейся панели -->
             <SplitView.Pane>
+                <!-- Border для оформления самой панели (рамка, скругление, фон) -->
                 <Border BorderBrush="{DynamicResource AltAccentColor}"
-                        BorderThickness="2" CornerRadius="16">
-                    <Border ClipToBounds="True" CornerRadius="16">
-                        <Grid>
-                            <TextBlock Background="{StaticResource PanelBrush}" Opacity="0.6" />
-                            <StackPanel Margin="10" Spacing="10">
-                                <TextBlock Text="Крутейший контент" FontSize="18" FontWeight="SemiBold"
-                                           Margin="0,20,0,10" />
-                                <TextBlock Text="Тут будет когда-то...." />
-                                <TextBlock Text="Типа мощности излучателя N = 200 дж/с" />
+                        BorderThickness="2"
+                        CornerRadius="16"> <!-- Обрезаем содержимое по скругленным углам -->
+                    <Grid>
+                        <!-- Полупрозрачный фон -->
+                        <Border CornerRadius="16" Background="{StaticResource DataPanelBackgroundBrush}" Opacity="0.9" />
+
+                        <!-- Контент панели с отступами и прокруткой -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="15" Spacing="8"> <!-- Уменьшим Spacing внутри -->
+
+                                <!-- Заголовок панели -->
+                                <TextBlock Text="Панель Данных" FontSize="18" FontWeight="Medium"
+                                           Margin="0,5,0,15" HorizontalAlignment="Left"/>
+
+                                <!-- === СУЩЕСТВУЮЩИЕ ПАРАМЕТРЫ === -->
+                                <StackPanel>
+                                    <TextBlock Text="Мощность нагревателя (N):" Classes="DataLabel"/>
+                                    <TextBlock Text="{Binding PowerRating}" Classes="DataValue"/>
+
+                                    <TextBlock Text="Время нагрева (t):" Classes="DataLabel"/>
+                                    <TextBlock Text="{Binding ElapsedTime, StringFormat='{}{0:hh\\:mm\\:ss}'}" Classes="DataValue"/>
+                                </StackPanel>
+
+                                <Border Classes="Separator"/>
+
+                                <!-- === НОВЫЕ ПАРАМЕТРЫ === -->
+                                <StackPanel>
+                                    <TextBlock Text="Начальная t° жидкости (T₀):" Classes="DataLabel"/>
+                                    <TextBlock Text="{Binding InitialTemperature, StringFormat='{}{0:F1} °C'}" Classes="DataValue"/>
+
+                                    <TextBlock Text="Текущая средняя t° (T_тек):" Classes="DataLabel"/>
+                                    <TextBlock Text="{Binding CurrentAverageTemperature, StringFormat='{}{0:F1} °C'}" Classes="DataValue"/>
+
+                                    <TextBlock Text="Масса жидкости (m):" Classes="DataLabel"/>
+                                    <TextBlock Text="{Binding LiquidMass, StringFormat='{}{0:F3} кг'}" Classes="DataValue"/>
+                                    
+                                    <TextBlock Text="Плотность жидкости (ρ):" Classes="DataLabel"/>
+                                    <TextBlock Text="{Binding LiquidDensity, StringFormat='{}{0:F1} кг/м³'}" Classes="DataValue"/>
+                                    
+                                    <TextBlock Text="Уд. теплоемкость (c):" Classes="DataLabel"/>
+                                    <TextBlock Text="{Binding SpecificHeatCapacity, StringFormat='{}{0} Дж/(кг·°C)'}" Classes="DataValue"/>
+
+                                    <TextBlock Text="Переданная теплота (Q):" Classes="DataLabel"/>
+                                    <TextBlock Text="{Binding HeatTransferred, StringFormat='{}{0:N0} Дж'}" Classes="DataValue"/>
+
+                                    <!-- (Опционально) Коэффициент теплопередачи (α) -->
+                                    <!-- <TextBlock Grid.Row="5" Grid.Column="0" Text="Коэф. теплопередачи (α):" Classes="DataLabel"/> -->
+                                    <!-- <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding HeatTransferCoefficient, StringFormat='{}{0:F1} Вт/(м²·К)'}" Classes="DataValue"/> -->
+                                </StackPanel>
+
+                                <!-- (Опционально) Дополнительная информация или графики -->
+                                <!-- <Border Classes="Separator"/> -->
+                                <!-- <TextBlock Text="График температуры (скоро)" Classes="DataLabel" Margin="0,10,0,0"/> -->
+
                             </StackPanel>
-                        </Grid>
-                    </Border>
+                        </ScrollViewer>
+                    </Grid>
                 </Border>
             </SplitView.Pane>
         </SplitView>
 
+        <!-- Кнопка для открытия/закрытия панели (Гамбургер) -->
+        <!-- Убедитесь, что команда и свойства видимости/положения привязаны к SettingsVM -->
+             <!-- Переключаем видимость кнопки в зависимости от положения панели -->
         <Button Name="DataPanelHamburgerButton"
                 Width="40" Height="40"
                 CornerRadius="4"
                 Margin="16"
+                IsVisible="{Binding SettingsVM.GeneralSettings.ShowDataPanelButton}"
                 HorizontalAlignment="{Binding SettingsVM.GeneralSettings.DataPanelButtonHorAlignment}"
                 VerticalAlignment="{Binding SettingsVM.GeneralSettings.DataPanelButtonVerAlignment}"
                 Background="{DynamicResource MainAccentColor}"
                 BorderBrush="{DynamicResource AltAccentColor}"
                 BorderThickness="2"
                 ToolTip.Tip="Панель данных"
-                Command="{Binding ShowDataPanelCommand}">
-            <ui:SymbolIcon FontSize="24" Symbol="{Binding SettingsVM.GeneralSettings.DataPanelButtonSymbol}" />
+                Command="{Binding ShowDataPanelCommand}"> <!-- Команда в MainViewModel -->
+             <!-- Иконка меняется в зависимости от того, где панель -->
+             <ui:SymbolIcon FontSize="24" Symbol="{Binding SettingsVM.GeneralSettings.DataPanelButtonSymbol}" />
         </Button>
     </Grid>
 </UserControl>

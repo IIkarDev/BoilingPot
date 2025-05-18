@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace BoilingPot.Views.Components;
 
-public partial class AltStoveView : UserControl
+public partial class UserControl1 : UserControl
 {
-    public AltStoveView()
+    public UserControl1()
     {
         InitializeComponent();
     }
