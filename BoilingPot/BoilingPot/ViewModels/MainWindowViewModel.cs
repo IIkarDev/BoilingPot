@@ -1,387 +1,535 @@
-﻿using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Diagnostics;
-using System.Reactive; 
-using Avalonia.Controls;
-using BoilingPot.Services;
+using System.Globalization;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
 using Avalonia;
-using Avalonia.Animation.Easings;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Microsoft.Extensions.DependencyInjection;
 using Avalonia.Threading;
-using BoilingPot.ViewModels.Components;
-using BoilingPot.ViewModels.SettingsViewModels;
+using BoilingPot.Services;
 using FluentAvalonia.UI.Controls;
+using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
-namespace BoilingPot.ViewModels
+namespace BoilingPot.ViewModels;
+
+/// <summary>
+///     Главный ViewModel приложения.
+///     Отвечает за управление основными состояниями UI, навигацию между
+///     главными экранами (Home, Common, Molecular) и отображение
+///     модальных/всплывающих панелей (Настройки, О программе, Панель данных).
+/// </summary>
+public class MainViewModel : ViewModelBase
 {
-    public partial class MainViewModel : ViewModelBase
+    #region Поля и Сервисы
+
+    /// <summary>
+    ///     Провайдер сервисов для получения зависимостей (других ViewModel, сервисов).
+    /// </summary>
+    private readonly IServiceProvider _serviceProvider;
+
+    /// <summary>
+    ///     Сервис для загрузки тем/стилей из .axaml файлов.
+    /// </summary>
+    private readonly IThemeLoaderService _themeLoader; // Он не используется напрямую здесь, а в ModelSettingsViewModel
+
+    #endregion
+
+    #region Свойства Управления Состоянием UI
+
+    /// <summary>
+    ///     Текущий активный ViewModel для основного контента (Home, Common, Molecular).
+    ///     Привязывается к ContentControl в MainWindow.axaml.
+    /// </summary>
+    [Reactive]
+    public ViewModelBase? CurrentViewModel { get; private set; }
+
+    [Reactive] private CommonViewModel CommonVm { get; set; }
+
+    /// <summary>
+    ///     (Если используется) Контрол, загруженный динамически (например, кастомная тема для элемента).
+    ///     Может быть не нужен, если вся логика тем в ModelSettingsViewModel.
+    /// </summary>
+    [Reactive]
+    public Control? DynamicViewContent { get; private set; }
+
+    /// <summary>
+    ///     (Если используется) Флаг, указывающий, активен ли DynamicViewContent.
+    /// </summary>
+    [Reactive]
+    public bool IsDynamicViewActive { get; private set; }
+
+    [Reactive] public bool IsCommonViewSelected { get; set; }
+
+
+    // --- Флаги видимости для панелей/окон ---
+
+    /// <summary>
+    ///     Управляет видимостью панели/окна настроек.
+    /// </summary>
+    [Reactive]
+    public bool IsShowingSettings { get; set; }
+
+    /// <summary>
+    ///     Управляет видимостью панели/окна "О программе".
+    /// </summary>
+    [Reactive]
+    public bool IsShowingAbout { get; set; }
+
+    /// <summary>
+    ///     Управляет видимостью выдвижной панели данных.
+    /// </summary>
+    [Reactive]
+    public bool IsShowingDataPanel { get; set; }
+
+    #endregion
+
+    #region Вычисляемые Свойства для Управления Видимостью Экранов
+
+    /// <summary>
+    ///     Только для чтения свойство, указывающее, активен ли в данный момент HomeView.
+    ///     Вычисляется на основе типа CurrentViewModel.
+    /// </summary>
+    private readonly ObservableAsPropertyHelper<bool> _isHomeViewSelectedHelper;
+
+    // Переключатель состояния Home/NotHome (для IsVisible в MainWindow)
+    // Используем ObservableAsPropertyHelper для создания вычисляемого свойства
+    private readonly ObservableAsPropertyHelper<bool>? _isCommonViewSelectedHelper;
+    public bool IsHomeViewSelected => _isHomeViewSelectedHelper.Value;
+
+    /// <summary>
+    ///     Только для чтения свойство, указывающее, НЕ активен ли в данный момент HomeView.
+    ///     (т.е., активен CommonView или MolecularView).
+    ///     Вычисляется на основе IsHomeViewSelected.
+    /// </summary>
+    private readonly ObservableAsPropertyHelper<bool>? _notIsHomeViewSelectedHelper;
+
+    public bool NotIsHomeViewSelected => _notIsHomeViewSelectedHelper.Value;
+
+    #endregion
+
+    #region ViewModel для Всплывающих Панелей
+
+    /// <summary>
+    ///     Экземпляр ViewModel для панели/окна настроек.
+    ///     Получается из DI контейнера (обычно как Singleton).
+    /// </summary>
+    public SettingsViewModel SettingsVM { get; }
+
+    #endregion
+
+    #region Свойства для ControlPanel (Пример, если часть логики ControlPanel здесь)
+
+    // Эти свойства, скорее всего, должны быть в своем ControlPanelViewModel,
+    // но если ControlPanelViewModel - это часть MainViewModel (что не очень хорошо для разделения),
+    // то они могут быть здесь.
+    // В твоем коде они были в MainViewModel, поэтому я их оставляю, но с комментарием.
+
+    [Reactive] public int FlameLevel { get; set; } // Уровень нагрева
+    [Reactive] public double ProcessSpeed { get; set; } = 1.0; // Скорость процессов
+    [Reactive] public string? SelectedVolume { get; set; } // Выбранный объем
+    [Reactive] public string? SelectedLiquidType { get; set; } // Выбранный тип жидкости
+    [Reactive] public object? SelectedNavItem { get; set; } // Выбранный элемент в NavigationView из ControlPanel
+
+    // Опции для ComboBox'ов из ControlPanel
+    public string[] VolumeOptions { get; } =
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IThemeLoaderService _themeLoader;
-        private readonly ModelSettingsViewModel  _modelSettingsViewModel;
+        "1.0 литр", "1.5 литра", "2.5 литра", "3.5 литра", "5.0 литров", "6.0 литров", "10.0 литров"
+    };
 
-        /// <summary>
-        /// DATAPANEL СВОЙСТВА
-        /// </summary>
-        
-        [Reactive] public bool IsSimulationPausedBySpeed { get; private set; } // Пауза из-за нулевой скорости
+    public string[] LiquidTypes { get; } =
+    {
+        "Вода", "Спирт", "Масло (раст.)", "Парафин", "Керосин", "Ртуть (жид.)"
+    };
 
-        [Reactive] public bool IsHeatingActive { get; private set; }
-        
-        private DispatcherTimer? _simulationTimer;
-        private DateTime _lastTickRealTime; // Реальное время последнего успешного тика
-        private TimeSpan _accumulatedSimulatedTime = TimeSpan.Zero;
-        
-        private readonly TimeSpan _baseTimerInterval = TimeSpan.FromMilliseconds(100); // Например, 10 раз в секунду реального времени
+    // Свойства для DataPanel, которые могут обновляться в зависимости от настроек ControlPanel
+    [Reactive] public double PowerRating { get; private set; }
+    [Reactive] public TimeSpan ElapsedTime { get; private set; }
+    [Reactive] public double InitialTemperature { get; set; } = 20.0;
+    [Reactive] public double CurrentAverageTemperature { get; private set; }
+    [Reactive] public double LiquidVolume { get; private set; }
+    [Reactive] public double LiquidDensity { get; private set; }
+    [Reactive] public double SpecificHeatCapacity { get; private set; }
+    [Reactive] public double LiquidMass { get; private set; }
+    [Reactive] public double HeatTransferred { get; private set; }
+    [Reactive] public bool IsHeatingActive { get; private set; }
+    [Reactive] public bool IsSimulationPausedBySpeed { get; private set; }
 
-        // --- Существующие свойства для DataPanel (предполагаемые) ---
-        // [Reactive] public double PowerRating { get; set; } = 2000; // Мощность, Вт
-        [Reactive] public double PowerRating { get; set; } = 0;
-        private readonly Dictionary<int, double> _powerLevels = new Dictionary<int, double>
+    private DispatcherTimer? _simulationTimer;
+    private DateTime _lastTickRealTime;
+    private TimeSpan _accumulatedSimulatedTime = TimeSpan.Zero;
+    private readonly TimeSpan _baseTimerInterval = TimeSpan.FromMilliseconds(100);
+
+    private readonly Dictionary<int, double> _powerLevels = new()
+    {
+        { 0, 0 }, { 1, 800 }, { 2, 1300 }, { 3, 1900 }, { 4, 2700 }, { 5, 3500 }
+    };
+
+    #endregion
+
+    #region Команды
+
+    // Команды для навигации между основными экранами
+    public ReactiveCommand<Unit, Unit> GoToHomeCommand { get; }
+    public ReactiveCommand<Unit, Unit> GoToCommonCommand { get; }
+    public ReactiveCommand<Unit, Unit> GoToMolecularCommand { get; }
+
+    // Команды для управления видимостью панелей
+    public ReactiveCommand<Unit, Unit> ShowSettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowAboutCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowDataPanelCommand { get; }
+
+    // Другие команды
+    public ReactiveCommand<Unit, Unit>? LoadFileCommand { get; } // Заглушка
+    public ReactiveCommand<Unit, Unit> CoolDownCommand { get; }
+    public ReactiveCommand<Unit, Unit>? ShowStructureCommand { get; } // Заглушка
+    public ReactiveCommand<Unit, Unit> ExitApplicationCommand { get; }
+
+    public ReactiveCommand<Unit, Unit>? LoadDynamicThemeCommand { get; } // Команда теперь только в ModelSettingsVM
+
+    #endregion
+
+
+    /// <summary>
+    ///     Конструктор
+    /// </summary>
+    /// <param name="serviceProvider"></param>
+    /// <param name="themeLoader"></param>
+    /// <param name="settingsViewModel"></param>
+    /// <param name="commonViewModel"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public MainViewModel(
+        IServiceProvider serviceProvider,
+        IThemeLoaderService themeLoader,
+        SettingsViewModel settingsViewModel,
+        CommonViewModel commonViewModel)
+    {
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _themeLoader = themeLoader; // Сохраняем, если нужен
+        CommonVm = commonViewModel;
+        SettingsVM = settingsViewModel ?? throw new ArgumentNullException(nameof(settingsViewModel));
+        Debug.WriteLine(">>> MainViewModel СОЗДАН (RxUI)");
+
+
+        // --- Подписка на Interaction от SettingsViewModel для закрытия ---
+        SettingsVM.CloseSettingsInteraction.RegisterHandler(interaction =>
         {
-            {0, 0},      // Уровень 0 (Выключено) - 0 Вт
-            {1, 800},    // Уровень 1 - 800 Вт
-            {2, 1300},   // Уровень 2 - 1300 Вт
-            {3, 1900},   // Уровень 3 - 1900 Вт
-            {4, 2700},   // Уровень 4 - 2700 Вт
-            {5, 3500}    // Уровень 5 - 3500 Вт
-        };
-      [Reactive] public double SpecificHeatCapacity { get; set; } = 0; // Уд. теплоемкость воды, Дж/(кг·°C)
-      [Reactive] public TimeSpan ElapsedTime { get; set; } // Время нагрева
-
-      // --- НОВЫЕ СВОЙСТВА для DataPanel ---
-      [Reactive] public double InitialTemperature { get; set; } = 20.0; // Начальная температура, °C
-      [Reactive] public double CurrentAverageTemperature { get; set; } // Текущая средняя температура, °C
-      [Reactive] public double LiquidVolume { get; set; } // Объем жидкости из настроек, м³ (нужно будет конвертировать из литров)
-      [Reactive] public double LiquidDensity { get; set; } = 0; // Плотность воды, кг/м³ (будет меняться от типа жидкости)
+            Debug.WriteLine($"[{GetType().Name}] Получен запрос на закрытие настроек от SettingsVM.");
+            IsShowingSettings = false; // Скрываем панель настроек
+            // SettingsVM.IsShowingSettings = false; // Это свойство в самом SettingsVM, он сам его выставит
+            interaction.SetOutput(Unit.Default); // Сообщаем, что обработали
+            Debug.WriteLine($"[{GetType().Name}] Обработка CloseSettingsInteraction для SettingsVM завершена.");
+        });
+        Debug.WriteLine(
+            $"[{GetType().Name}] Конструктор RxUI: Обработчик CloseSettingsInteraction для SettingsVM настроен.");
 
 
-      // Вычисляемое свойство для массы
-      [Reactive] public double LiquidMass { get; set; } = 0;
-      // return LiquidVolume * LiquidDensity; 
+        // --- Инициализация Команд ---
+        GoToHomeCommand = ReactiveCommand.Create(ExecuteGoToHome);
+        GoToCommonCommand = ReactiveCommand.Create(ExecuteGoToCommon);
+        GoToMolecularCommand = ReactiveCommand.Create(ExecuteGoToMolecular);
 
-      // Вычисляемое свойство для переданной теплоты
-      [Reactive] public double HeatTransferred { get; set; } = 0;
-          // SpecificHeatCapacity * LiquidMass * (CurrentAverageTemperature - InitialTemperature);
-      
-        [Reactive] public int FlameLevel { get; set; }
-        [Reactive] public double ProcessSpeed { get; set; } = 1.0d;
-        [Reactive] public string? SelectedVolume { get; set; }
-        public string[] VolumeOptions { get; } =
-        {
-            "1.0 литр", "1.5 литра", "2.5 литра", "3.5 литра", "5.0 литров", "6.0 литров", "10.0 литров"
-        };
-        public string[] LiquidTypes { get; } =
-        {
-            "Вода", "Спирт", "Масло (раст.)", "Парафин", "Керосин", "Ртуть (жид.)"
-        };
-        [Reactive] public string? SelectedLiquidType { get; set; }
-        [Reactive] public NavigationViewItem SelectedNavItem { get; set; }
-        [Reactive] public ViewModelBase CurrentViewModel { get; private set; }
-        [Reactive] public Control? DynamicViewContent { get; private set; } 
-        [Reactive] public bool IsDynamicViewActive { get; private set; }
+        ShowSettingsCommand = ReactiveCommand.Create(ExecuteShowSettings);
+        ShowAboutCommand = ReactiveCommand.Create(ExecuteShowAbout);
+        ShowDataPanelCommand = ReactiveCommand.Create(ExecuteShowDataPanel);
 
-        // Флаги видимости панелей
-        [Reactive] public bool IsShowingSettings { get; set; }
-        [Reactive] public bool IsShowingAbout { get; set; }
-        [Reactive] public bool IsShowingDataPanel { get; set; }
-
-        // Ссылка на SettingsViewModel (получаем из DI)
-        public SettingsViewModel SettingsVM { get; }
-
-        // --- Команды ---
-        public ReactiveCommand<Unit, Unit> CoolDownCommand { get; }
-        public ReactiveCommand<Unit, Unit> ShowStructureCommand { get; }
-        public ReactiveCommand<Unit, Unit> GoToHomeCommand { get; }
-        public ReactiveCommand<Unit, Unit> GoToCommonCommand { get; }
-        public ReactiveCommand<Unit, Unit> GoToMolecularCommand { get; }
-        
-        public ReactiveCommand<Unit, Unit> LoadDynamicThemeCommand { get; } // Команда теперь только в ModelSettingsVM
-        public ReactiveCommand<Unit, Unit> LoadFileCommand { get;  }
-        public ReactiveCommand<Unit, Unit> ShowSettingsCommand { get; }
-        public ReactiveCommand<Unit, Unit> ShowAboutCommand { get; }
-        public ReactiveCommand<Unit, Unit> ShowDataPanelCommand { get; }
-        public ReactiveCommand<Unit, Unit> ExitApplicationCommand { get; }
-
-        // Переключатель состояния Home/NotHome (для IsVisible в MainWindow)
-        // Используем ObservableAsPropertyHelper для создания вычисляемого свойства
-        private readonly ObservableAsPropertyHelper<bool> _isHomeViewSelectedHelper;
-        private readonly ObservableAsPropertyHelper<bool> _isCommonViewSelectedHelper;
-
-        public bool IsHomeViewSelected => _isHomeViewSelectedHelper.Value;
-        [Reactive] public bool IsCommonViewSelected { get; set; }
-
-        public MainViewModel(IServiceProvider serviceProvider, IThemeLoaderService themeLoader, SettingsViewModel settingsViewModel, ModelSettingsViewModel modelSettingsViewModel)
-        {
-            _modelSettingsViewModel = modelSettingsViewModel;
-            _serviceProvider = serviceProvider;
-            _themeLoader = themeLoader;
-            SettingsVM = settingsViewModel; // Получаем SettingsVM из DI
-
-            Debug.WriteLine(">>> MainViewModel СОЗДАН (RxUI)");
-            _isHomeViewSelectedHelper = this.WhenAnyValue(x => x.CurrentViewModel)
-                                            .Select(vm => vm is HomeViewModel) // true, если текущий VM - HomeViewModel
-                                            .ToProperty(this, x => x.IsHomeViewSelected); // Преобразуем в свойство
-            
-            IsCommonViewSelected = true;
-
-            this.WhenAnyValue(x => x.IsCommonViewSelected)
-                .Subscribe(isCommonViewSelected =>
-                {
-                    Debug.WriteLine($">>> IsCommonViewSelected = {isCommonViewSelected}");
-                    if (isCommonViewSelected) ExecuteGoToCommon();
-                    else ExecuteGoToMolecular();
-                });
-
-            
-            // --- НОВОЕ: Подписка на изменение ProcessSpeed (для паузы/возобновления) ---
-            this.WhenAnyValue(x => x.ProcessSpeed)
-                .Subscribe(newSpeed =>
-                {
-                    Debug.WriteLine($"[MainViewModel] ProcessSpeed изменен на: {newSpeed}x");
-                    if (IsHeatingActive) // Реагируем на скорость, только если нагрев в принципе активен
-                    {
-                        if (newSpeed <= 0 && (_simulationTimer?.IsEnabled ?? false))
-                        {
-                            // Скорость стала 0 или меньше, ставим симуляцию на ПАУЗУ
-                            PauseSimulationBySpeed();
-                        }
-                        else if (newSpeed > 0 && IsSimulationPausedBySpeed)
-                        {
-                            // Скорость стала > 0, возобновляем симуляцию с ПАУЗЫ
-                            ResumeSimulationFromSpeedPause();
-                        }
-                        // Если newSpeed > 0 и не было паузы по скорости, то скорость просто
-                        // будет учтена в следующем SimulationTimer_Tick.
-                    }
-                });
+        ExitApplicationCommand = ReactiveCommand.Create(ExecuteExitApplication);
+        CoolDownCommand = ReactiveCommand.Create(() => { HeatTransferred = 0; });
 
 
-            this.WhenAnyValue(x => x.FlameLevel)
-                .Subscribe(level =>
-                {
-                    PowerRating = _powerLevels[FlameLevel];
-                    // --- Логика управления таймером ---
-                    if (level > 0 && !IsHeatingActive && HeatTransferred == 0)
-                    {
-                        // Нагрев ВКЛЮЧАЕТСЯ (был 0, стал > 0)
-                        StartHeating();
-                    }
-                    else if (level == 0)
-                    {
-                        // Нагрев ВЫКЛЮЧАЕТСЯ (был > 0, стал 0)
-                        IsHeatingActive = false;
-                    }
-                    else if (level > 0 && IsHeatingActive)
-                    {
-                        // Уровень нагрева ИЗМЕНИЛСЯ, но он все еще включен
-                        Debug.WriteLine($"[MainViewModel] Уровень нагрева изменен на {level}, таймер продолжает работать.");
-                        // Здесь можно изменить интервал таймера или другие параметры симуляции,
-                        // если они зависят от FlameLevel не только через CurrentPowerRating
-                    }
-                });
-
-            this.WhenAnyValue(x => x.HeatTransferred)
-                .Subscribe(heatTransferred =>
-                {
-                    if (FlameLevel == 0 && heatTransferred == 0)
-                    {
-                        StopHeating();
-                        CurrentAverageTemperature = InitialTemperature;
-                    }
-                });
-            
-            // Инициализируем начальное состояние
-            ElapsedTime = TimeSpan.Zero;
-            IsHeatingActive = false;
-            IsSimulationPausedBySpeed = false;
+        // --- Инициализация Вычисляемых Свойств ---
+        _isHomeViewSelectedHelper = this.WhenAnyValue(x => x.CurrentViewModel)
+            .Select(vm => vm is HomeViewModel) // true, если текущий VM - HomeViewModel
+            .ToProperty(this, x => x.IsHomeViewSelected); // Преобразуем в свойство
 
 
-            CoolDownCommand = ReactiveCommand.Create(() => { HeatTransferred = 0; });
-
-            // --- Инициализация Команд ---
-            GoToHomeCommand = ReactiveCommand.Create(ExecuteGoToHome);
-            GoToCommonCommand = ReactiveCommand.Create(ExecuteGoToCommon);
-            GoToMolecularCommand = ReactiveCommand.Create(ExecuteGoToMolecular);
-            ShowSettingsCommand = ReactiveCommand.Create(ExecuteShowSettings);
-            ShowAboutCommand = ReactiveCommand.Create(ExecuteShowAbout);
-            ShowDataPanelCommand = ReactiveCommand.Create(ExecuteShowDataPanel);
-            ExitApplicationCommand = ReactiveCommand.Create(ExecuteExitApplication);
-
-            // --- !!! Обработка Interaction от SettingsViewModel !!! ---
-            SettingsVM.CloseSettingsInteraction.RegisterHandler(interaction =>
+        // Подписка на нажатие на выбранный элемент в NavigationView из ControlPanel
+        this.WhenAnyValue(x => x.SelectedNavItem)
+            .Where(item => item is NavigationViewItem)! // Убедимся, что это нужный тип
+            .Cast<NavigationViewItem>() // Приводим тип
+            .Where(item => item.Tag is string) // Убедимся, что Tag - строка
+            .Select(item => item.Tag as string) // Берем Tag
+            .Subscribe(tag => // Выполняем действие при получении нового Tag
             {
-                 Debug.WriteLine("[MainViewModel] Получен запрос на закрытие настроек от SettingsVM.");
-                 IsShowingSettings = false; // Скрываем панель
-                 SettingsVM.IsShowingSettings = IsShowingSettings;
-                 interaction.SetOutput(Unit.Default); // Сообщаем, что запрос обработан
+                Debug.WriteLine($"[SettingsViewModel] Выбран NavItem с Tag: {tag}");
+                switch (tag)
+                {
+                    case "Home": ExecuteGoToHome(); break;
+                    case "Data": ExecuteShowDataPanel(); break;
+                    case "Load": break;
+                    case "Save": break;
+                    case "Settings": ExecuteShowSettings(); break;
+                    case "About": ExecuteShowAbout(); break;
+                    case "Exit": ExecuteExitApplication(); break;
+                }
+
+                Dispatcher.UIThread.Post(
+                    () => SelectedNavItem = null, DispatcherPriority.Background);
             });
-            
-            this.WhenAnyValue(x => x.SelectedVolume)
-                .Skip(1)
-                .Subscribe(selectedVolume =>
+
+        //  --- Подписка на изменение вида
+        this.WhenAnyValue(x => x.IsCommonViewSelected)
+            .Subscribe(isCommonViewSelected =>
+            {
+                Debug.WriteLine($">>> IsCommonViewSelected = {isCommonViewSelected}");
+                if (isCommonViewSelected) ExecuteGoToCommon();
+                else ExecuteGoToMolecular();
+            });
+
+        // --- Подписка на СВОИ ProcessSpeed и FlameLevel ---
+        // Когда они меняются, и если текущий View - это MolecularViewModel,
+        // мы обновляем соответствующие свойства в MolecularViewModel.
+        this.WhenAnyValue(x => x.ProcessSpeed, x => x.FlameLevel, x => x.CurrentViewModel)
+            .Where(tuple => tuple.Item3 is MolecularViewModel) // Реагируем только если текущий вид - молекулярный
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(tuple =>
+            {
+                var (speed, flame, currentVm) = tuple;
+                if (currentVm is MolecularViewModel molecularVm)
                 {
-                    if (CurrentViewModel is CommonViewModel commonVm && selectedVolume != null)
-                    {
-                        _ = commonVm.UpdatePotVolumeText(selectedVolume);
-                        UpdateLiquidParameters(selectedVolume, SelectedLiquidType);
-                        _ = commonVm.ModelVm.ApplySelectedThemeAsync(commonVm.ModelVm.SelectedPotThemeKey, "Pot");
-                        Debug.WriteLine($"[MainViewModel] SelectedKEEEEEEEY = {commonVm.ModelVm.SelectedPotThemeKey}");
-                    }
-                });
-            
-            this.WhenAnyValue(x => x.SelectedLiquidType)
-                .Skip(1)
-                .Subscribe(selectedLiquidType =>
+                    Debug.WriteLine(
+                        $"[MainViewModel] Обновление параметров в MolecularViewModel: Speed={speed}, Flame={flame}");
+                    molecularVm.CurrentProcessSpeed = speed;
+                    molecularVm.CurrentFlameLevel = flame;
+                }
+            });
+
+
+        // --- Подписки на изменения свойств из ControlPanel (FlameLevel, ProcessSpeed и т.д.) ---
+        SetupControlPanelSubscriptions();
+
+        // --- Инициализируем начальное состояние ---
+        IsCommonViewSelected = true;
+
+        // --- Устанавливаем начальный вид ---
+        ExecuteGoToHome();
+    }
+
+
+    #region Логика Симуляции и Панели Данных (Перенесено из старого кода)
+
+    private void SetupControlPanelSubscriptions()
+    {
+        Debug.WriteLine($"[{GetType().Name}] SetupControlPanelSubscriptions: Настройка подписок.");
+
+        // Подписка на изменение скорости процесса
+        this.WhenAnyValue(x => x.ProcessSpeed)
+            .Subscribe(newSpeed =>
+            {
+                Debug.WriteLine($"[MainViewModel] ProcessSpeed изменен на: {newSpeed}x");
+                if (IsHeatingActive) // Реагируем на скорость, только если нагрев в принципе активен
                 {
-                    if (CurrentViewModel is CommonViewModel commonVm && selectedLiquidType != null)
-                    {
-                        _ = commonVm.UpdateLiquidType(SelectedLiquidType!);
-                        UpdateLiquidParameters(SelectedVolume, selectedLiquidType);
-                        _ = commonVm.ModelVm.ApplySelectedThemeAsync(commonVm.ModelVm.SelectedPotThemeKey, "Pot");
-                        Debug.WriteLine($"[MainViewModel] SelectedKEEEEEEEY = {commonVm.ModelVm.SelectedPotThemeKey}");
-                    }
-                });
+                    if (newSpeed <= 0 && (_simulationTimer?.IsEnabled ?? false))
+                        // Скорость стала 0 или меньше, ставим симуляцию на ПАУЗУ
+                        PauseSimulationBySpeed();
+                    else if (newSpeed > 0 && IsSimulationPausedBySpeed)
+                        // Скорость стала > 0, возобновляем симуляцию с ПАУЗЫ
+                        ResumeSimulationFromSpeedPause();
+                    // Если newSpeed > 0 и не было паузы по скорости, то скорость просто
+                    // будет учтена в следующем SimulationTimer_Tick.
+                }
+            });
 
-            this.WhenAnyValue(x => x.SelectedNavItem)
-                .Where(item => item is NavigationViewItem) // Убедимся, что это нужный тип
-                .Cast<NavigationViewItem>() // Приводим тип
-                .Where(item => item.Tag is string) // Убедимся, что Tag - строка
-                .Select(item => item.Tag as string) // Берем Tag
-                .Subscribe(tag => // Выполняем действие при получении нового Tag
+        // Подписка на изменение уровня нагрева (FlameLevel)
+        this.WhenAnyValue(x => x.FlameLevel)
+            .Subscribe(level =>
+            {
+                PowerRating = _powerLevels[FlameLevel];
+                // --- Логика управления таймером ---
+                if (level > 0 && !IsHeatingActive && HeatTransferred == 0)
+                    StartHeating();
+                // Нагрев ВКЛЮЧАЕТСЯ (был 0, стал > 0)
+                else if (level > 0)
+                    IsHeatingActive = true;
+                // Нагрев ПРОДОЛЖАЕТСЯ
+                else if (level == 0)
+                    // Нагрев ВЫКЛЮЧАЕТСЯ (был > 0, стал 0)
+                    IsHeatingActive = false;
+            });
+
+        // Подписка на изменение выбранного объема
+        this.WhenAnyValue(x => x.SelectedVolume)
+            .Skip(1)
+            .Subscribe(selectedVolume =>
+            {
+                if (selectedVolume != null)
                 {
-                    Debug.WriteLine($"[SettingsViewModel] Выбран NavItem с Tag: {tag}");
-                    switch (tag)
-                    {
-                        case "Home": ExecuteGoToHome(); break;
-                        case "Data": ExecuteShowDataPanel(); break;
-                        case "Load": break;
-                        case "Save": break;
-                        case "Settings": ExecuteShowSettings(); break;
-                        case "About": ExecuteShowAbout(); break;
-                        case "Exit": ExecuteExitApplication(); break;
-                    }
-                    Dispatcher.UIThread.Post(
-                        () => SelectedNavItem = null, DispatcherPriority.Background);
-                });
+                    _ = CommonVm.UpdatePotVolumeText(selectedVolume);
+                    UpdateLiquidParameters(selectedVolume, SelectedLiquidType);
+                    _ = CommonVm.ModelVm.ApplySelectedThemeAsync(CommonVm.ModelVm.SelectedPotThemeKey, "Pot");
+                    Debug.WriteLine($"[MainViewModel] SelectedKEEEEEEEY = {CommonVm.ModelVm.SelectedPotThemeKey}");
+                }
+            });
 
-            // Устанавливаем начальный вид
-            ExecuteGoToHome();
-        }
-        
-        // --- Реализация Методов Команд ---
-    
-        private void ExecuteGoToHome()
-        {
-            DynamicViewContent = null; IsDynamicViewActive = false;
-            IsCommonViewSelected = false;
-            CurrentViewModel = _serviceProvider.GetRequiredService<HomeViewModel>();
-            Debug.WriteLine(">>> Переход на Home");
-        }
-        private void ExecuteGoToCommon()
-        {
-            DynamicViewContent = null; IsDynamicViewActive = false;
-            IsCommonViewSelected = true;
-            CurrentViewModel = _serviceProvider.GetRequiredService<CommonViewModel>();
-            Debug.WriteLine(">>> Переход на Common");
-        }
-        private void ExecuteGoToMolecular()
-        {
-            IsCommonViewSelected = false;
-            DynamicViewContent = null; IsDynamicViewActive = false;
-            CurrentViewModel = _serviceProvider.GetRequiredService<MolecularViewModel>();
-            Debug.WriteLine(">>> Переход на Molecular");
-        }
-        private void ExecuteShowSettings() { SettingsVM.IsShowingSettings = !SettingsVM.IsShowingSettings; }
-        private void ExecuteShowAbout() { IsShowingAbout = !IsShowingAbout; }
-        private void ExecuteShowDataPanel() { IsShowingDataPanel = !IsShowingDataPanel; }
-
-        private void ExecuteShowDataPanelButton()
-        {
-            SettingsVM.GeneralSettings.ShowDataPanelButton = !SettingsVM.GeneralSettings.ShowDataPanelButton;
-        }
-
-        private void ExecuteExitApplication()
-        {
-             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-             { desktop.Shutdown(); }
-        }
-
-        
-        // Метод для обновления параметров жидкости при выборе из ComboBox
-        private void UpdateLiquidParameters(string? selectedVolume, string? selectedLiquidType)
-        {
-            // --- Обновление объема и конвертация в м³ ---
-            if (selectedVolume != null && double.TryParse(selectedVolume.Split(' ')[0], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double volValueLiters))
+        // Подписка на изменение типа жидкости
+        this.WhenAnyValue(x => x.SelectedLiquidType)
+            .Skip(1)
+            .Subscribe(selectedLiquidType =>
             {
-                LiquidVolume = volValueLiters / 1000.0; // Конвертируем литры в м³
-            }
-            else
-            {
-                LiquidVolume = 0.001; // 1 литр по умолчанию
-            }
-            Debug.WriteLine($"CURRENT VOLUME TRIED TO PARSE {selectedVolume?.Split(' ')[0]}");
+                if (selectedLiquidType != null)
+                {
+                    _ = CommonVm.UpdateLiquidType(SelectedLiquidType!);
+                    UpdateLiquidParameters(SelectedVolume, selectedLiquidType);
+                    _ = CommonVm.ModelVm.ApplySelectedThemeAsync(CommonVm.ModelVm.SelectedPotThemeKey, "Pot");
+                    Debug.WriteLine($"[MainViewModel] SelectedKEEEEEEEY = {CommonVm.ModelVm.SelectedPotThemeKey}");
 
-            // --- Обновление плотности и уд. теплоемкости в зависимости от типа жидкости ---
-            switch (selectedLiquidType)
-            {
-                case "Вода":
-                    LiquidDensity = 998; // кг/м³ при ~20°C
-                    SpecificHeatCapacity = 4186; // Дж/(кг·°C)
-                    break;
-                case "Керосин":
-                    LiquidDensity = 800;
-                    SpecificHeatCapacity = 2090;
-                    break;
-                case "Масло (раст.)": // Подсолнечное как пример
-                    LiquidDensity = 920;
-                    SpecificHeatCapacity = 1900; // Примерно
-                    break;
-                case "Парафин": // Твердый при комн. темп, но для симуляции нагрева жидкого
-                    LiquidDensity = 770; // Жидкий
-                    SpecificHeatCapacity = 2100; // Жидкий
-                    break;
-                case "Спирт": // Этанол
-                    LiquidDensity = 789;
-                    SpecificHeatCapacity = 2440;
-                    break;
-                case "Ртуть (жид.)":
-                    LiquidDensity = 13534;
-                    SpecificHeatCapacity = 139.5;
-                    break;
-                default:
-                    LiquidDensity = 0; // По умолчанию вода
-                    SpecificHeatCapacity = 0;
-                    break;
-            }
-            // Обновляем CurrentAverageTemperature, чтобы начать с InitialTemperature
-            LiquidMass = LiquidVolume * LiquidDensity; 
-            CurrentAverageTemperature = InitialTemperature;
-            HeatTransferred = SpecificHeatCapacity * LiquidMass * (CurrentAverageTemperature - InitialTemperature);
-            
-                // Сбрасываем состояние симуляции при смене параметров
-                // Сначала полностью останавливаем нагрев
-            bool wasHeating = IsHeatingActive;
-            StopHeating(); // Это обнулит IsHeatingActive и IsSimulationPausedBySpeed
+                    if (CurrentViewModel is MolecularViewModel molecularVm) molecularVm.GenerateBubbles();
+                }
+            });
 
-            _accumulatedSimulatedTime = TimeSpan.Zero;
-            ElapsedTime = _accumulatedSimulatedTime;
-            // CurrentAverageTemperature = InitialTemperature; // Сброс температуры
 
-            // Если нагрев был активен до смены параметров, пытаемся его возобновить
-            if (wasHeating && FlameLevel > 0)
+        this.WhenAnyValue(x => x.HeatTransferred)
+            .Subscribe(heatTransferred =>
             {
-                Debug.WriteLine("[MainViewModel] UpdateLiquidParameters: Возобновление нагрева после смены параметров.");
-                StartHeating();
-            }
+                if (FlameLevel == 0 && heatTransferred == 0)
+                {
+                    StopHeating();
+                    CurrentAverageTemperature = InitialTemperature;
+                }
+            });
+
+        // Инициализация начальных значений для DataPanel
+        UpdateLiquidParameters(SelectedVolume ?? VolumeOptions.FirstOrDefault(),
+            SelectedLiquidType ?? LiquidTypes.FirstOrDefault());
+        ElapsedTime = TimeSpan.Zero;
+        IsHeatingActive = false;
+        IsSimulationPausedBySpeed = false;
+    }
+
+    #endregion
+
+    #region Методы Выполнения Команд
+
+    private void ExecuteGoToHome()
+    {
+        DynamicViewContent = null;
+        IsDynamicViewActive = false;
+        IsCommonViewSelected = false;
+        CurrentViewModel = _serviceProvider.GetRequiredService<HomeViewModel>();
+        Debug.WriteLine(">>> Переход на Home");
+    }
+
+    private void ExecuteGoToCommon()
+    {
+        DynamicViewContent = null;
+        IsDynamicViewActive = false;
+        IsCommonViewSelected = true;
+        CurrentViewModel = CommonVm;
+        Debug.WriteLine(">>> Переход на Common");
+    }
+
+    private void ExecuteGoToMolecular()
+    {
+        IsCommonViewSelected = false;
+        DynamicViewContent = null;
+        IsDynamicViewActive = false;
+        CurrentViewModel = _serviceProvider.GetRequiredService<MolecularViewModel>();
+        Debug.WriteLine(">>> Переход на Molecular");
+    }
+
+    private void ExecuteShowSettings()
+    {
+        SettingsVM.IsShowingSettings = !SettingsVM.IsShowingSettings;
+    }
+
+    private void ExecuteShowAbout()
+    {
+        IsShowingAbout = !IsShowingAbout;
+    }
+
+    private void ExecuteShowDataPanel()
+    {
+        IsShowingDataPanel = !IsShowingDataPanel;
+    }
+
+
+    private void ExecuteShowDataPanelButton()
+    {
+        SettingsVM.GeneralSettings.ShowDataPanelButton = !SettingsVM.GeneralSettings.ShowDataPanelButton;
+    }
+
+    private void ExecuteExitApplication()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.Shutdown();
+    }
+
+    #endregion
+
+    /// <summary>
+    ///     Метод для обновления параметров жидкости при выборе из ComboBox
+    /// </summary>
+    private void UpdateLiquidParameters(string? selectedVolume, string? selectedLiquidType)
+    {
+        // --- Обновление объема и конвертация в м³ ---
+        if (selectedVolume != null && double.TryParse(selectedVolume.Split(' ')[0], NumberStyles.Any,
+                CultureInfo.InvariantCulture, out var volValueLiters))
+            LiquidVolume = volValueLiters / 1000.0; // Конвертируем литры в м³
+        else
+            LiquidVolume = 0.001; // 1 литр по умолчанию
+        Debug.WriteLine($"CURRENT VOLUME TRIED TO PARSE {selectedVolume?.Split(' ')[0]}");
+
+        // --- Обновление плотности и уд. теплоемкости в зависимости от типа жидкости ---
+        switch (selectedLiquidType)
+        {
+            case "Вода":
+                LiquidDensity = 998; // кг/м³ при ~20°C
+                SpecificHeatCapacity = 4186; // Дж/(кг·°C)
+                break;
+            case "Керосин":
+                LiquidDensity = 800;
+                SpecificHeatCapacity = 2090;
+                break;
+            case "Масло (раст.)": // Подсолнечное как пример
+                LiquidDensity = 920;
+                SpecificHeatCapacity = 1900; // Примерно
+                break;
+            case "Парафин": // Твердый при комн. темп, но для симуляции нагрева жидкого
+                LiquidDensity = 770; // Жидкий
+                SpecificHeatCapacity = 2100; // Жидкий
+                break;
+            case "Спирт": // Этанол
+                LiquidDensity = 789;
+                SpecificHeatCapacity = 2440;
+                break;
+            case "Ртуть (жид.)":
+                LiquidDensity = 13534;
+                SpecificHeatCapacity = 139;
+                break;
+            default:
+                LiquidDensity = 0; // По умолчанию вода
+                SpecificHeatCapacity = 0;
+                break;
         }
-        
+
+        // Обновляем CurrentAverageTemperature, чтобы начать с InitialTemperature
+        LiquidMass = LiquidVolume * LiquidDensity;
+        CurrentAverageTemperature = InitialTemperature;
+        HeatTransferred = SpecificHeatCapacity * LiquidMass * (CurrentAverageTemperature - InitialTemperature);
+
+        // Сбрасываем состояние симуляции при смене параметров
+        // Сначала полностью останавливаем нагрев
+        var wasHeating = IsHeatingActive;
+        StopHeating(); // Это обнулит IsHeatingActive и IsSimulationPausedBySpeed
+
+        _accumulatedSimulatedTime = TimeSpan.Zero;
+        ElapsedTime = _accumulatedSimulatedTime;
+        // CurrentAverageTemperature = InitialTemperature; // Сброс температуры
+
+        // Если нагрев был активен до смены параметров, пытаемся его возобновить
+        if (wasHeating && FlameLevel > 0)
+        {
+            Debug.WriteLine("[MainViewModel] UpdateLiquidParameters: Возобновление нагрева после смены параметров.");
+            StartHeating();
+        }
+    }
+
+
+    #region Функции маниауляции с данными на панели
 
     // Метод для начала процесса нагрева (когда FlameLevel > 0)
     private void StartHeating()
@@ -389,8 +537,8 @@ namespace BoilingPot.ViewModels
         Debug.WriteLine("[MainViewModel] StartHeating: Начало процесса нагрева.");
         IsHeatingActive = true;
         _accumulatedSimulatedTime = TimeSpan.Zero; // Сбрасываем симулированное время
-        ElapsedTime = _accumulatedSimulatedTime;   // Обновляем UI
-        _lastTickRealTime = DateTime.Now;          // Запоминаем время старта/возобновления
+        ElapsedTime = _accumulatedSimulatedTime; // Обновляем UI
+        _lastTickRealTime = DateTime.Now; // Запоминаем время старта/возобновления
 
         // Если ProcessSpeed > 0, сразу запускаем таймер
         if (ProcessSpeed > 0)
@@ -448,7 +596,8 @@ namespace BoilingPot.ViewModels
             _simulationTimer.Tick -= SimulationTimer_Tick; // Отписка на всякий случай
             _simulationTimer.Tick += SimulationTimer_Tick;
             _simulationTimer.Start();
-            Debug.WriteLine($"[MainViewModel] EnsureTimerStarted: Таймер запущен/создан с интервалом {_baseTimerInterval.TotalMilliseconds} мс.");
+            Debug.WriteLine(
+                $"[MainViewModel] EnsureTimerStarted: Таймер запущен/создан с интервалом {_baseTimerInterval.TotalMilliseconds} мс.");
         }
     }
 
@@ -462,34 +611,34 @@ namespace BoilingPot.ViewModels
         // _simulationTimer = null; // Можно не обнулять, чтобы переиспользовать
     }
 
-
     // Обработчик тика таймера
     private void SimulationTimer_Tick(object? sender, EventArgs e)
     {
         // Таймер тикает, только если IsHeatingActive И ProcessSpeed > 0
         if (!IsHeatingActive || IsSimulationPausedBySpeed || ProcessSpeed <= 0)
         {
-             // Эта ситуация не должна возникать, если таймер правильно останавливается, но на всякий случай.
-             // if(IsHeatingActive && (_simulationTimer?.IsEnabled ?? false)) EnsureTimerStopped();
-             // return;
+            // Эта ситуация не должна возникать, если таймер правильно останавливается, но на всякий случай.
+            // if(IsHeatingActive && (_simulationTimer?.IsEnabled ?? false)) EnsureTimerStopped();
+            // return;
         }
 
-        DateTime currentRealTime = DateTime.Now;
+        var currentRealTime = DateTime.Now;
         // Реальное время, прошедшее с последнего тика (или с момента _lastTickRealTime)
-        TimeSpan realTimeDelta = currentRealTime - _lastTickRealTime;
+        var realTimeDelta = currentRealTime - _lastTickRealTime;
         _lastTickRealTime = currentRealTime; // Обновляем время последнего тика
 
         // Симулированное время, прошедшее за этот реальный интервал
-        double simulatedMillisecondsThisTick = realTimeDelta.TotalMilliseconds * ProcessSpeed;
+        var simulatedMillisecondsThisTick = realTimeDelta.TotalMilliseconds * ProcessSpeed;
         _accumulatedSimulatedTime += TimeSpan.FromMilliseconds(simulatedMillisecondsThisTick);
         ElapsedTime = _accumulatedSimulatedTime;
         // --- Логика симуляции нагрева ---
-        
+
         if (IsHeatingActive) HeatTransferred += PowerRating * simulatedMillisecondsThisTick / 1000.0;
         else if (HeatTransferred >= 0) HeatTransferred -= 0.07 * simulatedMillisecondsThisTick;
-        
+
         CurrentAverageTemperature = InitialTemperature + HeatTransferred / (LiquidMass * SpecificHeatCapacity);
         // ... (расчет температуры и т.д., используя simulatedMillisecondsThisTick или realTimeDelta * ProcessSpeed) ...
     }
-    }
+
+    #endregion
 }

@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:BoilingPot.ViewModels"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600" 
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="600"
              x:Class="BoilingPot.Views.Components.DataPanelView"
              x:DataType="vm:MainViewModel"> <!-- DataContext наследуется от MainWindow -->
 
@@ -16,27 +16,27 @@
             <GradientStop Color="#AA1C1C1C" Offset="1.0" /> <!-- Полупрозрачный темный -->
         </LinearGradientBrush>
     </UserControl.Resources>
-    
+
     <UserControl.Styles>
         <!-- Стиль для метки параметра -->
         <Style Selector="TextBlock.DataLabel">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Opacity" Value="0.8"/>
-            <Setter Property="Margin" Value="0,0,5,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Opacity" Value="0.8" />
+            <Setter Property="Margin" Value="0,0,5,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <!-- Стиль для значения параметра -->
         <Style Selector="TextBlock.DataValue">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <!-- Стиль для разделителя -->
         <Style Selector="Border.Separator">
-            <Setter Property="Height" Value="1"/>
-            <Setter Property="Background" Value="{DynamicResource AltAccentColor}"/>
-            <Setter Property="Opacity" Value="0.3"/>
-            <Setter Property="Margin" Value="0,8"/>
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource AltAccentColor}" />
+            <Setter Property="Opacity" Value="0.3" />
+            <Setter Property="Margin" Value="0,8" />
         </Style>
     </UserControl.Styles>
 
@@ -44,11 +44,11 @@
     <Grid>
         <!-- SplitView для выдвигающейся панели -->
         <SplitView Name="DataSplitView"
-                   BorderThickness="0" 
-                   PanePlacement="{Binding SettingsVM.GeneralSettings.DataPanePlacement}" 
+                   BorderThickness="0"
+                   PanePlacement="{Binding SettingsVM.GeneralSettings.DataPanePlacement}"
                    IsPaneOpen="{Binding IsShowingDataPanel}"
                    DisplayMode="CompactOverlay"
-                   OpenPaneLength="280" 
+                   OpenPaneLength="280"
                    CompactPaneLength="0"
                    Margin="8"
                    PaneBackground="Transparent"> <!-- Фон панели будет у внутреннего Border -->
@@ -69,38 +69,45 @@
 
                                 <!-- Заголовок панели -->
                                 <TextBlock Text="Панель Данных" FontSize="18" FontWeight="Medium"
-                                           Margin="0,5,0,15" HorizontalAlignment="Left"/>
+                                           Margin="0,5,0,15" HorizontalAlignment="Left" />
 
                                 <!-- === СУЩЕСТВУЮЩИЕ ПАРАМЕТРЫ === -->
                                 <StackPanel>
-                                    <TextBlock Text="Мощность нагревателя (N):" Classes="DataLabel"/>
-                                    <TextBlock Text="{Binding PowerRating}" Classes="DataValue"/>
+                                    <TextBlock Text="Мощность нагревателя (N):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding PowerRating}" Classes="DataValue" />
 
-                                    <TextBlock Text="Время нагрева (t):" Classes="DataLabel"/>
-                                    <TextBlock Text="{Binding ElapsedTime, StringFormat='{}{0:hh\\:mm\\:ss}'}" Classes="DataValue"/>
+                                    <TextBlock Text="Время нагрева (t):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding ElapsedTime, StringFormat='{}{0:hh\\:mm\\:ss}'}"
+                                               Classes="DataValue" />
                                 </StackPanel>
 
-                                <Border Classes="Separator"/>
+                                <Border Classes="Separator" />
 
                                 <!-- === НОВЫЕ ПАРАМЕТРЫ === -->
                                 <StackPanel>
-                                    <TextBlock Text="Начальная t° жидкости (T₀):" Classes="DataLabel"/>
-                                    <TextBlock Text="{Binding InitialTemperature, StringFormat='{}{0:F1} °C'}" Classes="DataValue"/>
+                                    <TextBlock Text="Начальная t° жидкости (T₀):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding InitialTemperature, StringFormat='{}{0:F1} °C'}"
+                                               Classes="DataValue" />
 
-                                    <TextBlock Text="Текущая средняя t° (T_тек):" Classes="DataLabel"/>
-                                    <TextBlock Text="{Binding CurrentAverageTemperature, StringFormat='{}{0:F1} °C'}" Classes="DataValue"/>
+                                    <TextBlock Text="Текущая средняя t° (T_тек):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding CurrentAverageTemperature, StringFormat='{}{0:F1} °C'}"
+                                               Classes="DataValue" />
 
-                                    <TextBlock Text="Масса жидкости (m):" Classes="DataLabel"/>
-                                    <TextBlock Text="{Binding LiquidMass, StringFormat='{}{0:F3} кг'}" Classes="DataValue"/>
-                                    
-                                    <TextBlock Text="Плотность жидкости (ρ):" Classes="DataLabel"/>
-                                    <TextBlock Text="{Binding LiquidDensity, StringFormat='{}{0:F1} кг/м³'}" Classes="DataValue"/>
-                                    
-                                    <TextBlock Text="Уд. теплоемкость (c):" Classes="DataLabel"/>
-                                    <TextBlock Text="{Binding SpecificHeatCapacity, StringFormat='{}{0} Дж/(кг·°C)'}" Classes="DataValue"/>
+                                    <TextBlock Text="Масса жидкости (m):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding LiquidMass, StringFormat='{}{0:F3} кг'}"
+                                               Classes="DataValue" />
 
-                                    <TextBlock Text="Переданная теплота (Q):" Classes="DataLabel"/>
-                                    <TextBlock Text="{Binding HeatTransferred, StringFormat='{}{0:N0} Дж'}" Classes="DataValue"/>
+                                    <TextBlock Text="Плотность жидкости (ρ):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding LiquidDensity, StringFormat='{}{0:F1} кг/м³'}"
+                                               Classes="DataValue" />
+
+                                    <TextBlock Text="Уд. теплоемкость (c):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding SpecificHeatCapacity, StringFormat='{}{0} Дж/(кг·°C)'}"
+                                               Classes="DataValue" />
+
+                                    <TextBlock Text="Переданная теплота (Q):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding HeatTransferred, StringFormat='{}{0:N0} Дж'}"
+                                               Classes="DataValue" />
 
                                     <!-- (Опционально) Коэффициент теплопередачи (α) -->
                                     <!-- <TextBlock Grid.Row="5" Grid.Column="0" Text="Коэф. теплопередачи (α):" Classes="DataLabel"/> -->
@@ -120,7 +127,7 @@
 
         <!-- Кнопка для открытия/закрытия панели (Гамбургер) -->
         <!-- Убедитесь, что команда и свойства видимости/положения привязаны к SettingsVM -->
-             <!-- Переключаем видимость кнопки в зависимости от положения панели -->
+        <!-- Переключаем видимость кнопки в зависимости от положения панели -->
         <Button Name="DataPanelHamburgerButton"
                 Width="40" Height="40"
                 CornerRadius="4"
@@ -133,8 +140,8 @@
                 BorderThickness="2"
                 ToolTip.Tip="Панель данных"
                 Command="{Binding ShowDataPanelCommand}"> <!-- Команда в MainViewModel -->
-             <!-- Иконка меняется в зависимости от того, где панель -->
-             <ui:SymbolIcon FontSize="24" Symbol="{Binding SettingsVM.GeneralSettings.DataPanelButtonSymbol}" />
+            <!-- Иконка меняется в зависимости от того, где панель -->
+            <ui:SymbolIcon FontSize="24" Symbol="{Binding SettingsVM.GeneralSettings.DataPanelButtonSymbol}" />
         </Button>
     </Grid>
 </UserControl>

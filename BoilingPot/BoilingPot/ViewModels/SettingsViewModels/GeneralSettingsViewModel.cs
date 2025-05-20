@@ -1,113 +1,185 @@
 ﻿// ViewModels/SettingsViewModels/GeneralSettingsViewModel.cs
 
-using ReactiveUI; // Базовый класс RxUI
-using ReactiveUI.Fody.Helpers; // Для [Reactive]
+using Avalonia.Layout;          // Для HorizontalAlignment, VerticalAlignment
+using FluentAvalonia.UI.Controls; // Для Symbol, SplitViewPanePlacement (если используется во View)
+using ReactiveUI;               // Базовый класс RxUI
+using ReactiveUI.Fody.Helpers;  // Для [Reactive]
 using System;
 using System.Collections.Generic;
-using System.Diagnostics; // Для Debug
-using System.Reactive; // Для Unit
+using System.Diagnostics;       // Для Debug
 using System.Reactive.Linq;
-using Avalonia.Controls;
-using Avalonia.Layout;
-using FluentAvalonia.UI.Controls; // Для WhenAnyValue
+using Avalonia.Controls; // Для WhenAnyValue и операторов Rx
 
 // Пространство имен для ViewModel секций настроек
 namespace BoilingPot.ViewModels.SettingsViewModels
 {
-    // ViewModel для секции "Общие Настройки".
+    /// <summary>
+    ///     ViewModel для секции "Общие Настройки" приложения.
+    /// </summary>
     public partial class GeneralSettingsViewModel : ViewModelBase
     {
-        // --- Свойства для общих настроек ---
+        #region Свойства Настроек
 
-        // Язык (StringEqualsConverter используется в View для RadioButton)
-        [Reactive] public string SelectedLanguage { get; set; } = "Русский"; // Начальное значение
+        /// <summary>
+        /// Выбранный язык интерфейса.
+        /// </summary>
+        [Reactive] public string SelectedLanguage { get; set; } = "Русский";
 
-        // Панель данных
-        [Reactive] public bool ShowDataPanelButton { get; set; } = true; // Флаг отображения кнопки панели
-        [Reactive] public HorizontalAlignment DataPanelButtonHorAlignment { get; set; } = HorizontalAlignment.Right; // Положение кнопки
-        [Reactive] public VerticalAlignment DataPanelButtonVerAlignment { get; set; } = VerticalAlignment.Top; // Положение кнопки
-        [Reactive] public SplitViewPanePlacement DataPanePlacement{ get; set; } = SplitViewPanePlacement.Right;
-        [Reactive] public Symbol DataPanelButtonSymbol { get; set; } = Symbol.ChevronLeft;
-        [Reactive] public string SelectedDataPanelButtonPosition { get; set; } = "Верхний правый угол"; // Положение кнопки
-        [Reactive] public bool IsDataPanelOnLeft { get; set; } // Положение панели
+        /// <summary>
+        /// Флаг, указывающий, отображать ли кнопку вызова панели данных.
+        /// </summary>
+        [Reactive] public bool ShowDataPanelButton { get; set; } = true;
 
-        // Отображение элементов навигации в ControlPanel (NavigationView)
+        /// <summary>
+        /// Выбранное положение кнопки вызова панели данных (из ComboBox).
+        /// </summary>
+        [Reactive] public string SelectedDataPanelButtonPosition { get; set; } = "Верхний правый угол";
+
+        /// <summary>
+        /// Горизонтальное выравнивание кнопки панели данных (вычисляется).
+        /// </summary>
+        [Reactive] public HorizontalAlignment DataPanelButtonHorAlignment { get; private set; } = HorizontalAlignment.Right;
+
+        /// <summary>
+        /// Вертикальное выравнивание кнопки панели данных (вычисляется).
+        /// </summary>
+        [Reactive] public VerticalAlignment DataPanelButtonVerAlignment { get; private set; } = VerticalAlignment.Top;
+
+        /// <summary>
+        /// Символ иконки для кнопки панели данных (вычисляется).
+        /// </summary>
+        [Reactive] public Symbol DataPanelButtonSymbol { get; private set; } = Symbol.ChevronLeft;
+
+        /// <summary>
+        /// Расположение панели данных (слева/справа) (вычисляется).
+        /// </summary>
+        [Reactive] public SplitViewPanePlacement DataPanePlacement { get; private set; } = SplitViewPanePlacement.Right;
+
+
+        /// <summary>
+        /// Флаг, указывающий, размещена ли панель данных слева (управляет навигационным элементом).
+        /// </summary>
+        [Reactive] public bool IsDataPanelOnLeft { get; set; } // Если true, кнопка DataPanel в ControlPanel не нужна
+
+
+        // --- Флаги видимости для элементов навигации в ControlPanel ---
         [Reactive] public bool ShowHomeNavItem { get; set; } = true;
-        [Reactive] public bool ShowLoadNavItem { get; set; } = true;
-        [Reactive] public bool ShowSaveNavItem { get; set; } = true;
-        [Reactive] public bool ShowSettingsNavItem { get; set; } = true; // Навигация на эту секцию
+        [Reactive] public bool ShowLoadNavItem { get; set; } = true; // Добавлено (вместо Load)
+        [Reactive] public bool ShowSaveNavItem { get; set; } = true; // Добавлено (вместо Save)
+        [Reactive] public bool ShowSettingsNavItem { get; set; } = true;
         [Reactive] public bool ShowAboutNavItem { get; set; } = true;
         [Reactive] public bool ShowExitNavItem { get; set; } = true;
+        // Убраны ShowLoadNavItem и ShowSaveNavItem, так как их заменили ShowCommonNavItem и ShowMolecularNavItem
+        // Если "Загрузить" и "Сохранить" - это отдельные функции, их нужно будет вернуть
 
-        // Списки опций для ComboBox
+        #endregion
+
+        #region Опции для ComboBox
+
+        /// <summary>
+        /// Список доступных языков интерфейса.
+        /// </summary>
         public List<string> LanguageOptions { get; } = new List<string> { "Русский", "English" };
-        public List<string> PositionOptions { get; } = new List<string> { "Верхний правый угол", "Нижний правый угол", "Верхний левый угол", "Нижний левый угол" };
 
+        /// <summary>
+        /// Список доступных вариантов положения кнопки.
+        /// </summary>
+        public List<string> PositionOptions { get; } = new List<string>
+        {
+            "Верхний правый угол",
+            "Нижний правый угол",
+            "Верхний левый угол",
+            "Нижний левый угол"
+        };
 
-        // --- Команды (если нужны для специфичных действий) ---
-        // public ReactiveCommand<Unit, Unit> ApplyGeneralSettingsCommand { get; }
+        #endregion
 
-        // --- Конструктор ---
+        #region Конструктор
+
         public GeneralSettingsViewModel()
         {
-             Debug.WriteLine("[GeneralSettingsVM] Конструктор RxUI: Начало");
-             
-             this.WhenAnyValue(x => x.SelectedDataPanelButtonPosition)
-                 .Subscribe(selectedDataPanelButtonPosition => // Выполняем действие при получении нового Tag
-                 {
-                     switch (selectedDataPanelButtonPosition)
-                     {
-                         case "Верхний правый угол": 
-                             DataPanelButtonHorAlignment = HorizontalAlignment.Right;
-                             DataPanelButtonVerAlignment = VerticalAlignment.Top;
-                             DataPanePlacement = SplitViewPanePlacement.Right;
-                             DataPanelButtonSymbol = Symbol.ChevronLeft; break;
-                         case "Нижний правый угол": 
-                             DataPanelButtonHorAlignment = HorizontalAlignment.Right;
-                             DataPanelButtonVerAlignment = VerticalAlignment.Bottom;
-                             DataPanePlacement = SplitViewPanePlacement.Right;
-                             DataPanelButtonSymbol = Symbol.ChevronLeft; break;
-                         case "Верхний левый угол": 
-                             DataPanelButtonHorAlignment = HorizontalAlignment.Left;
-                             DataPanelButtonVerAlignment = VerticalAlignment.Top;
-                             DataPanePlacement = SplitViewPanePlacement.Left;
-                             DataPanelButtonSymbol = Symbol.ChevronRight; break;
-                         case "Нижний левый угол": 
-                             DataPanelButtonHorAlignment = HorizontalAlignment.Left;
-                             DataPanelButtonVerAlignment = VerticalAlignment.Bottom; 
-                             DataPanePlacement = SplitViewPanePlacement.Left;
-                             DataPanelButtonSymbol = Symbol.ChevronRight; break;
-                        default:
-                             DataPanelButtonHorAlignment = HorizontalAlignment.Right;
-                             DataPanelButtonVerAlignment = VerticalAlignment.Top; 
-                             DataPanePlacement = SplitViewPanePlacement.Right;
-                             DataPanelButtonSymbol = Symbol.ChevronLeft; break;
-                     }
-                 });
-            // --- Реакция на изменение свойств (пример) ---
-            // Подписываемся на изменение языка (когда UI обновит SelectedLanguage)
+            Debug.WriteLine($"[{GetType().Name}] Конструктор RxUI: Начало");
+
+            // --- Реакция на изменение выбранного положения кнопки панели данных ---
+            this.WhenAnyValue(x => x.SelectedDataPanelButtonPosition)
+                .Subscribe(selectedPosition =>
+                {
+                    Debug.WriteLine($"[{GetType().Name}] SelectedDataPanelButtonPosition изменился на: {selectedPosition}");
+                    // Обновляем вычисляемые свойства на основе выбранной строки
+                    switch (selectedPosition)
+                    {
+                        case "Верхний правый угол":
+                            DataPanelButtonHorAlignment = HorizontalAlignment.Right;
+                            DataPanelButtonVerAlignment = VerticalAlignment.Top;
+                            // DataPanePlacement остается Right, символ ChevronLeft
+                            if (IsDataPanelOnLeft) DataPanelButtonSymbol = Symbol.ChevronLeft; // Если панель слева, кнопка "открывает" вправо
+                            else DataPanelButtonSymbol = Symbol.ChevronLeft;
+                            break;
+                        case "Нижний правый угол":
+                            DataPanelButtonHorAlignment = HorizontalAlignment.Right;
+                            DataPanelButtonVerAlignment = VerticalAlignment.Bottom;
+                            if (IsDataPanelOnLeft) DataPanelButtonSymbol = Symbol.ChevronLeft;
+                            else DataPanelButtonSymbol = Symbol.ChevronLeft;
+                            break;
+                        case "Верхний левый угол":
+                            DataPanelButtonHorAlignment = HorizontalAlignment.Left;
+                            DataPanelButtonVerAlignment = VerticalAlignment.Top;
+                            // DataPanePlacement остается Left, символ ChevronRight
+                            if (IsDataPanelOnLeft) DataPanelButtonSymbol = Symbol.ChevronRight;
+                            else DataPanelButtonSymbol = Symbol.ChevronRight;
+                            break;
+                        case "Нижний левый угол":
+                            DataPanelButtonHorAlignment = HorizontalAlignment.Left;
+                            DataPanelButtonVerAlignment = VerticalAlignment.Bottom;
+                            if (IsDataPanelOnLeft) DataPanelButtonSymbol = Symbol.ChevronRight;
+                            else DataPanelButtonSymbol = Symbol.ChevronRight;
+                            break;
+                        default: // По умолчанию, как "Верхний правый угол"
+                            DataPanelButtonHorAlignment = HorizontalAlignment.Right;
+                            DataPanelButtonVerAlignment = VerticalAlignment.Top;
+                            DataPanelButtonSymbol = Symbol.ChevronLeft;
+                            break;
+                    }
+                    Debug.WriteLine($"[{GetType().Name}] Обновленные параметры кнопки: Hor={DataPanelButtonHorAlignment}, Ver={DataPanelButtonVerAlignment}, Symbol={DataPanelButtonSymbol}");
+                });
+
+            // --- Реакция на изменение флага "Разместить панель данных слева" ---
+            this.WhenAnyValue(x => x.IsDataPanelOnLeft)
+                .Subscribe(isOnLeft =>
+                {
+                    Debug.WriteLine($"[{GetType().Name}] IsDataPanelOnLeft изменился на: {isOnLeft}");
+                    // Обновляем расположение панели и видимость/символ кнопки
+                    DataPanePlacement = isOnLeft ? SplitViewPanePlacement.Left : SplitViewPanePlacement.Right;
+                    // Кнопка навигации для DataPanel в ControlPanelViewModel отображается, если панель слева
+                    // Кнопка-гамбургер на самой DataPanelView отображается, если панель справа
+                    ShowDataPanelButton = !isOnLeft; // Кнопка-гамбургер видима, если панель справа
+
+                    // Обновляем символ кнопки в зависимости от нового положения панели
+                    if (isOnLeft)
+                    {
+                        // Если панель теперь слева, кнопка-гамбургер на DataPanelView (если она есть) должна "открывать" вправо
+                        // Но у нас кнопка-гамбургер связана с IsDataPanelOnLeft
+                        // Логика кнопки в ControlPanelView должна поменяться
+                        // DataPanelButtonSymbol = Symbol.ChevronRight; // Это для кнопки-гамбургера, которая теперь скрыта
+                    }
+                    else
+                    {
+                        // Если панель справа, кнопка-гамбургер "открывает" влево
+                        DataPanelButtonSymbol = Symbol.ChevronLeft;
+                    }
+                    Debug.WriteLine($"[{GetType().Name}] DataPanePlacement: {DataPanePlacement}, ShowDataPanelButton (гамбургер): {ShowDataPanelButton}, DataPanelButtonSymbol: {DataPanelButtonSymbol}");
+                });
+
+            // --- Другие подписки (пример) ---
             this.WhenAnyValue(x => x.SelectedLanguage)
-                .Skip(1) // Пропускаем начальное значение
-                .Subscribe(lang => Debug.WriteLine($"[GeneralSettingsVM] Выбран язык: {lang}"));
+                .Skip(1) // Пропускаем начальное значение при первой подписке
+                .Subscribe(lang => Debug.WriteLine($"[{GetType().Name}] Выбран язык: {lang}"));
 
-            // Подписываемся на изменение флага ShowDataPanelButton
-            this.WhenAnyValue(x => x.ShowDataPanelButton)
-                 .Subscribe(isVisible => Debug.WriteLine($"[GeneralSettingsVM] Кнопка панели данных видима: {isVisible}"));
+            // TODO: Загрузить сохраненные настройки при инициализации
+            // Например, из сервиса настроек.
 
-            // Подписываемся на изменение положения панели
-             this.WhenAnyValue(x => x.IsDataPanelOnLeft)
-                  .Subscribe(isOnLeft =>
-                  {
-                      DataPanePlacement = isOnLeft ? SplitViewPanePlacement.Left : SplitViewPanePlacement.Right;
-                      ShowDataPanelButton = !isOnLeft;
-                      Debug.WriteLine($"[GeneralSettingsVM] Панель данных слева: {isOnLeft}");
-                  });
-
-
-            // TODO: Добавить логику загрузки/сохранения настроек при инициализации или при вызове команды "Сохранить" в SettingsViewModel
-            // TODO: Возможно, некоторые настройки (как язык) должны быть применены сразу, другие - при сохранении.
-
-             Debug.WriteLine("[GeneralSettingsVM] Конструктор RxUI: Завершение");
+            Debug.WriteLine($"[{GetType().Name}] Конструктор RxUI: Завершение");
         }
+        #endregion
     }
 }

@@ -4,7 +4,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:BoilingPot.ViewModels"
-             xmlns:v="using:BoilingPot.Views.Components"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              xmlns:settingsViews="using:BoilingPot.Views.SettingsViews"
              xmlns:settingsViewModels="using:BoilingPot.ViewModels.SettingsViewModels"
@@ -16,7 +15,7 @@
         <vm:SettingsViewModel />
     </Design.DataContext>
 
-        <!-- DataTemplates для секций настроек -->
+    <!-- DataTemplates для секций настроек -->
     <UserControl.DataTemplates>
         <DataTemplate DataType="{x:Type settingsViewModels:GeneralSettingsViewModel}">
             <settingsViews:GeneralSettingsView />
@@ -102,7 +101,7 @@
 
                     <!-- Область для контента выбранной секции (скроллер внутри NavigationView) -->
                     <ScrollViewer Margin="5,0,0,0" CornerRadius="8"> <!-- Скругление скроллера -->
-                         <ContentControl Content="{Binding CurrentSettingSectionViewModel}"/>
+                        <ContentControl Content="{Binding CurrentSettingSectionViewModel}" />
                     </ScrollViewer>
 
                 </ui:NavigationView>

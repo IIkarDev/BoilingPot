@@ -32,7 +32,9 @@ namespace BoilingPot.ViewModels.SettingsViewModels
         // ViewModel для кастрюли (один экземпляр, DataContext для PotPresenter)
 
         public PotViewModelBase PotViewModelInstance { get; set; }
-        public StoveViewModelBase StoveViewModelInstance { get; }
+        public StoveViewModelBase StoveViewModelInstance { get; set; }
+        public BubbleViewModelBase BubbleViewModelInstance { get; set; }
+
 
         private bool _isInitialized = false; // Флаг, чтобы инициализировать только один раз
 
@@ -73,7 +75,8 @@ namespace BoilingPot.ViewModels.SettingsViewModels
             // Создаем ЕДИНСТВЕННЫЙ экземпляр PotViewModel
             PotViewModelInstance = _serviceProvider.GetRequiredService<PotViewModelBase>();
             StoveViewModelInstance = _serviceProvider.GetRequiredService<StoveViewModelBase>();
-
+            BubbleViewModelInstance = _serviceProvider.GetRequiredService<BubbleViewModelBase>();
+            
             Debug.WriteLine($"[ModelSettingsVM] Конструктор RxUI: PotViewModelInstance создан.");
 
             // --- Инициализация Команд ---

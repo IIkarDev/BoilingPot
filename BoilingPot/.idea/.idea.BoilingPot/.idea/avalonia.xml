@@ -60,6 +60,16 @@
         <entry key="AvaloniaApplication1/Views/ShowAboutView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
         <entry key="BoilingPot/App.axaml" value="BoilingPot/BoilingPot.csproj" />
         <entry key="BoilingPot/Resources/Components/AltPotTheme.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/CommonView.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/Components/ControlPanelView.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/Components/DataPanelView.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/Components/UserControl1.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/MainWindow.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/MolecularView.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/SettingsView.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/SettingsViews/GeneralSettingsView.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/SettingsViews/ModelSettingsView.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Views/SettingsViews/ThemeSettingsView.axaml" value="BoilingPot/BoilingPot.csproj" />
       </map>
     </option>
   </component>

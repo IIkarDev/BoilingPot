@@ -1,15 +1,16 @@
 ﻿// Views/MolecularView.axaml.cs
-using Avalonia.ReactiveUI; // Для ReactiveUserControl
-using BoilingPot.ViewModels; // Пространство имен MolecularViewModel
-using ReactiveUI; // Для WhenActivated
-using System.Reactive.Disposables; // Для CompositeDisposable
-using System.Diagnostics; // Для Debug
-using System.Reactive.Linq; // Для Where, Select
+// ... (using как раньше) ...
+
+using System;
+using System.Diagnostics;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using Avalonia.ReactiveUI;
+using BoilingPot.ViewModels;
+using ReactiveUI;
 
 namespace BoilingPot.Views
 {
-    // Представление для экрана молекулярной симуляции.
-    // Наследуется от ReactiveUserControl<TViewModel>.
     public partial class MolecularView : ReactiveUserControl<MolecularViewModel>
     {
         public MolecularView()
@@ -17,41 +18,37 @@ namespace BoilingPot.Views
             InitializeComponent();
             Debug.WriteLine($"[{this.GetType().Name}] View создан.");
 
-            // WhenActivated вызывается при активации View в визуальном дереве
-            // (т.е. когда View становится видимым на экране).
-            // Здесь мы настраиваем подписки или вызываем методы инициализации.
             this.WhenActivated(disposables =>
             {
                 Debug.WriteLine($"[{this.GetType().Name}] АКТИВИРОВАН.");
 
-                // Проверяем, что ViewModel доступен и имеет метод InitializeAsync
-                // (ReactiveUserControl гарантирует, что ViewModel не null в WhenActivated)
-                if (ViewModel != null)
+                // --- ЖДЕМ, пока ViewModel будет установлен ---
+                this.WhenAnyValue(x => x.ViewModel) // Наблюдаем за свойством ViewModel (тип MolecularViewModel)
+                    .Where(vm => vm != null)        // Фильтруем, пока ViewModel не станет не-null
+                    .Take(1)                        // Берем только первое не-null значение
+                    .ObserveOn(RxApp.MainThreadScheduler) // Переключаемся на UI поток
+                    // !!! ЯВНО УКАЗЫВАЕМ ТИП ПАРАМЕТРА ЛЯМБДЫ !!!
+                    .Subscribe((MolecularViewModel? actualViewModel) => // <--- ИЗМЕНЕНИЕ ЗДЕСЬ
+                    {
+                        // Проверяем еще раз на null на всякий случай, хотя Where и Take должны это обеспечить
+                        if (actualViewModel != null)
+                        {
+                            Debug.WriteLine($"[{this.GetType().Name}] ViewModel ({actualViewModel.GetType().Name}) установлен и не null. Вызов InitializeAsync.");
+                            _ = actualViewModel.InitializeAsync(); // Запускаем асинхронную инициализацию
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"!!! [{this.GetType().Name}] Subscribe: actualViewModel равен null, InitializeAsync не вызван.");
+                        }
+                    })
+                    .DisposeWith(disposables); // Отписываемся при деактивации
+
+                Disposable.Create(() =>
                 {
-                    // Вызываем асинхронный метод инициализации ViewModel
-                    // (например, чтобы сгенерировать пузырьки и запустить таймер)
-                    // Вызов без await, т.к. мы в лямбде активации
-                     // TODO: Получить начальные значения скорости/нагрева из настроек (например, из Singleton сервиса)
-                     // Пока используем заглушки 1.0
-                     _ = ViewModel.InitializeAsync(1.0, 1.0); // Запускаем инициализацию
-
-                     Debug.WriteLine($"[{this.GetType().Name}] WhenActivated: Вызван ViewModel.InitializeAsync().");
-                }
-                else
-                {
-                     Debug.WriteLine($"[{this.GetType().Name}] WhenActivated: ViewModel РАВЕН null!");
-                }
-
-
-                // Код очистки (отписки) выполняется автоматически при деактивации View
-                 // (Когда View становится невидимым или удаляется из дерева)
-                 Disposable.Create(() => System.Diagnostics.Debug.WriteLine($"[{this.GetType().Name}] ДЕАКТИВИРОВАН.")).DisposeWith(disposables);
+                    Debug.WriteLine($"[{this.GetType().Name}] ДЕАКТИВИРОВАН. Попытка остановить симуляцию.");
+                    ViewModel?.StopSimulation(); // Останавливаем симуляцию
+                }).DisposeWith(disposables);
             });
         }
-
-        // Старый обработчик DataContextChanged не нужен с ReactiveUserControl
-        // private void OnDataContextChanged(object? sender, EventArgs e) { ... }
-        // Метод OnDetachedFromVisualTree тоже не нужен для отписки от WhenActivated
-        // protected override void OnDetachedFromVisualTree(...) { ... }
     }
 }

@@ -1,179 +1,193 @@
 ﻿// ViewModels/MolecularViewModel.cs
-using ReactiveUI; // Базовый класс RxUI
-using ReactiveUI.Fody.Helpers; // Для [Reactive]
+
+// --- Подключение необходимых пространств имен ---
+using Avalonia.Media;
+using Avalonia.Threading;
+using BoilingPot.Services;
+using BoilingPot.ViewModels.Components;
+using BoilingPot.ViewModels.SettingsViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System;
-using System.Diagnostics; // Для Debug
-using System.Reactive; // Для Unit
-using System.Reactive.Linq; // Для Where, Select
-using System.Collections.ObjectModel; // Для ObservableCollection
-using Avalonia.Media; // Для IBrush
-using Avalonia.Threading; // Для DispatcherTimer
-using BoilingPot.ViewModels.Components; // Для BubbleViewModel
-using Microsoft.Extensions.DependencyInjection; // Для IServiceProvider
-using System.Threading.Tasks; // Для Task, Task.Delay
+using System.Collections.Generic; // Для List<Point> в BubbleViewModel
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
+using BoilingPot.Models;
 
 namespace BoilingPot.ViewModels
 {
-    // ViewModel для экрана молекулярной симуляции.
-    // Управляет коллекцией пузырьков и логикой их анимации (симуляции).
     public partial class MolecularViewModel : ViewModelBase
     {
+        // --- Зависимости ---
         private readonly IServiceProvider _serviceProvider;
-        private DispatcherTimer? _simulationTimer; // Таймер для симуляции движения
-        private Random _random = new Random(); // Для рандомизации
+        private readonly ModelSettingsViewModel _modelSettings;
 
-        // Коллекция пузырьков для отображения в ItemsControl в View.
-        // ObservableCollection уведомляет View об изменении коллекции (добавление/удаление).
-        public ObservableCollection<BubbleViewModel> Bubbles { get; } = new ObservableCollection<BubbleViewModel>();
+        [Reactive] public double CurrentProcessSpeed { get; set; }
 
-        // Свойства для управления симуляцией (могут быть привязаны к UI)
-        // Можно получить эти значения из CommonViewModel или GlobalSettings/ModelSettings
-        [Reactive] public double SimulationSpeed { get; set; } = 1.0; // Скорость симуляции
-        [Reactive] public double HeatIntensity { get; set; } = 1.0; // Интенсивность нагрева
+        [Reactive] public int CurrentFlameLevel { get; set; }
 
-        // Флаг для управления состоянием симуляции (запущена/остановлена)
+        // --- Симуляция ---
+        private DispatcherTimer? _simulationTimer;
+        private Random _random = new Random();
+        public ObservableCollection<BubbleViewModelBase> Bubbles { get; } = new ObservableCollection<BubbleViewModelBase>();
         [Reactive] public bool IsSimulationRunning { get; private set; }
 
-        // Команды для управления симуляцией
-        public ReactiveCommand<Unit, Unit> StartSimulationCommand { get; }
-        public ReactiveCommand<Unit, Unit> StopSimulationCommand { get; }
+        // --- Параметры "аквариума" для пузырьков ---
+        public double AquariumX { get; } = 0;
+        public double AquariumY { get; } = 0;
+        public double AquariumWidth { get; } = 280;
+        public double AquariumHeight { get; } = 380;
 
+        // --- Визуализация пламени ---
+        [Reactive] public double FlameVisualHeight { get; private set; }
 
-        // Конструктор. Получает зависимости (IServiceProvider).
-        public MolecularViewModel(IServiceProvider serviceProvider)
+        // --- НОВОЕ: Свойства для управления траекторией ---
+        // Эти значения определяют "полосы" движения
+        private double _edgeLaneWidthRatio = 0.25; // 25% ширины для боковых потоков вверх
+        private double _centerLaneWidthRatio = 0.4; // 40% ширины для центрального потока вниз
+        // Остальное - буферные зоны
+
+        // Конструктор (остается почти таким же, как в предыдущей версии)
+        public MolecularViewModel(
+            IServiceProvider serviceProvider,
+            ModelSettingsViewModel modelSettings)
         {
             _serviceProvider = serviceProvider;
-            Debug.WriteLine($"[{this.GetType().Name}] Конструктор RxUI: Начало.");
+            _modelSettings = modelSettings;
+            Debug.WriteLine($"[{this.GetType().Name}] Конструктор: Начало.");
+            
 
-            // Инициализация команд
-            StartSimulationCommand = ReactiveCommand.Create(ExecuteStartSimulation,
-                this.WhenAnyValue(x => x.IsSimulationRunning).Select(isRunning => !isRunning)); // Команда активна, если симуляция НЕ запущена
-            StopSimulationCommand = ReactiveCommand.Create(ExecuteStopSimulation,
-                this.WhenAnyValue(x => x.IsSimulationRunning).Select(isRunning => isRunning)); // Команда активна, если симуляция ЗАПУЩЕНА
+            // Подписки на FlameLevel, ProcessSpeed, изменения объема/жидкости
+            this.WhenAnyValue(vm => vm.CurrentFlameLevel)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(flameLevel => FlameVisualHeight = flameLevel * 10.0);
 
-            // Подписка на активацию/деактивацию ViewModel (когда View становится видимым/скрывается)
-            // Используется для запуска/остановки таймера симуляции
-            // ВАЖНО: Эта подписка должна быть настроена в CodeBehind View (MolecularView.axaml.cs)
-            // через WhenActivated, а не здесь в ViewModel! ViewModel не должен знать о жизненном цикле View.
-
-             Debug.WriteLine($"[{this.GetType().Name}] Конструктор RxUI: Завершение.");
-        }
-
-        // Метод инициализации симуляции (вызывается при переходе на этот экран)
-        // Асинхронный, т.к. может включать загрузку данных/настроек
-        public async Task InitializeAsync(double initialSpeed, double initialHeat)
-        {
-            Debug.WriteLine($"[{this.GetType().Name}] InitializeAsync: Начало инициализации симуляции.");
-            SimulationSpeed = initialSpeed;
-            HeatIntensity = initialHeat;
-
-            // Логика генерации пузырьков
-            GenerateBubbles();
-
-            // Запуск симуляции (таймера)
-            ExecuteStartSimulation(); // Запускаем сразу после инициализации
-
-             Debug.WriteLine($"[{this.GetType().Name}] InitializeAsync: Инициализация завершена.");
-        }
-
-        // Метод для генерации начального набора пузырьков
-        private void GenerateBubbles()
-        {
-            Bubbles.Clear(); // Очищаем предыдущие пузырьки
-            Debug.WriteLine($"[{this.GetType().Name}] GenerateBubbles: Генерация пузырьков...");
-
-            // --- Ваша логика генерации пузырьков ---
-            // Основывается на параметрах симуляции (SimulationSpeed, HeatIntensity)
-            // и, возможно, общих параметрах (объем, тип жидкости) из других VM.
-            // Можете получать эти параметры через DI в конструкторе,
-            // или передавать их в InitializeAsync, или читать из Singleton сервиса настроек.
-
-            // Пример: Создание 50 пузырьков
-            double potWidth = 300; // Условные размеры области
-            double potHeight = 400;
-
-            for (int i = 0; i < 50; i++)
-            {
-                // Создаем экземпляр BubbleViewModel (DI здесь обычно не нужен, т.к. это простая модель данных)
-                var bubble = new BubbleViewModel
+            this.WhenAnyValue(vm => vm.CurrentProcessSpeed)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(processSpeed =>
                 {
-                    // Случайная начальная позиция и размер
-                    X = _random.NextDouble() * potWidth,
-                    Y = _random.NextDouble() * potHeight,
-                    Size = _random.NextDouble() * 10 + 5, // Размер от 5 до 15
-                    ColorBrush = Brushes.Aqua, // Цвет по умолчанию
+                    if (processSpeed > 0 && !IsSimulationRunning && Bubbles.Any()) StartSimulation();
+                    // Логика паузы будет в Tick
+                });
 
-                    // Параметры анимации (Duration, HorizontalShift) -
-                    // могут зависеть от SimulationSpeed, HeatIntensity
-                    // ...
-                };
-                 Bubbles.Add(bubble);
-            }
-             Debug.WriteLine($"[{this.GetType().Name}] GenerateBubbles: Создано {Bubbles.Count} пузырьков.");
+            Observable.Merge(
+                    _modelSettings.PotViewModelInstance.WhenAnyValue(vm => vm.PotVolumeText),
+                    _modelSettings.PotViewModelInstance.WhenAnyValue(vm => vm.LiquidTypeText)
+                )
+                .Throttle(TimeSpan.FromMilliseconds(300))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => GenerateBubbles());
+
+            Debug.WriteLine($"[{this.GetType().Name}] Конструктор: Завершение.");
         }
 
-        // --- Реализация методов команд симуляции ---
-
-        private void ExecuteStartSimulation()
+        public async Task InitializeAsync()
         {
-            Debug.WriteLine($"[{this.GetType().Name}] ExecuteStartSimulation: Команда вызвана.");
-            if (!IsSimulationRunning)
-            {
-                // Создаем или настраиваем таймер
-                _simulationTimer ??= new DispatcherTimer();
-                _simulationTimer.Interval = TimeSpan.FromMilliseconds(100); // Интервал обновления симуляции
-                _simulationTimer.Tick -= SimulationTimer_Tick; // Отписываемся от старых подписок
-                _simulationTimer.Tick += SimulationTimer_Tick; // Подписываемся на событие тика
-
-                _simulationTimer.Start(); // Запускаем таймер
-                IsSimulationRunning = true; // Обновляем флаг
-                Debug.WriteLine($"[{this.GetType().Name}] ExecuteStartSimulation: Симуляция ЗАПУЩЕНА. Таймер запущен.");
-            }
-             else { Debug.WriteLine($"[{this.GetType().Name}] ExecuteStartSimulation: Симуляция уже запущена."); }
+            Debug.WriteLine($"[{this.GetType().Name}] InitializeAsync: Начало.");
+            GenerateBubbles();
+            if (CurrentProcessSpeed > 0) StartSimulation();
+            else IsSimulationRunning = false;
+            Debug.WriteLine($"[{this.GetType().Name}] InitializeAsync: Завершение.");
+            await Task.CompletedTask;
         }
 
-        private void ExecuteStopSimulation()
+        private void StartSimulation()
         {
-             Debug.WriteLine($"[{this.GetType().Name}] ExecuteStopSimulation: Команда вызвана.");
-            if (IsSimulationRunning)
+            // ... (код StartSimulation как раньше, проверяет ProcessSpeed) ...
+            Debug.WriteLine($"[{this.GetType().Name}] StartSimulation: Попытка запуска.");
+            if (IsSimulationRunning && (_simulationTimer?.IsEnabled ?? false)) return;
+            if (CurrentProcessSpeed <= 0)
             {
-                _simulationTimer?.Stop(); // Останавливаем таймер
-                _simulationTimer = null; // Можно обнулить, чтобы создать заново при следующем запуске
-                IsSimulationRunning = false; // Обновляем флаг
-                Debug.WriteLine($"[{this.GetType().Name}] ExecuteStopSimulation: Симуляция ОСТАНОВЛЕНА. Таймер остановлен.");
+                Debug.WriteLine(
+                    $"[{this.GetType().Name}] StartSimulation: ProcessSpeed ({CurrentProcessSpeed}) <= 0, таймер не запущен.");
+                IsSimulationRunning = false;
+                _simulationTimer?.Stop();
+                return;
             }
-             else { Debug.WriteLine($"[{this.GetType().Name}] ExecuteStopSimulation: Симуляция уже остановлена."); }
+
+            _simulationTimer ??= new DispatcherTimer();
+            _simulationTimer.Interval = TimeSpan.FromMilliseconds(50); // ~20 FPS, можно уменьшить для скорости
+            _simulationTimer.Tick -= SimulationTimer_Tick;
+            _simulationTimer.Tick += SimulationTimer_Tick;
+            _simulationTimer.Start();
+            IsSimulationRunning = true;
+            Debug.WriteLine($"[{this.GetType().Name}] StartSimulation: Таймер ЗАПУЩЕН.");
         }
 
-        // --- Обработчик тика таймера (логика движения пузырьков) ---
+        public void StopSimulation()
+        {
+            // ... (код StopSimulation как раньше) ...
+            Debug.WriteLine($"[{this.GetType().Name}] StopSimulation: Попытка остановки.");
+            _simulationTimer?.Stop();
+            IsSimulationRunning = false;
+            Debug.WriteLine($"[{this.GetType().Name}] StopSimulation: Таймер ОСТАНОВЛЕН. IsSimulationRunning = false.");
+        }
+
+        public void GenerateBubbles()
+        {
+            Bubbles.Clear();
+            Debug.WriteLine($"[{this.GetType().Name}] GenerateBubbles: Начало генерации 40 пузырьков.");
+            IBrush bubbleColor = _modelSettings.PotViewModelInstance.LiquidColor ?? Brushes.Transparent;
+            int numberOfBubbles = 1400;
+            double baseBubbleSize = 20;
+
+            Debug.WriteLine($"[{this.GetType().Name}] GenerateBubbles: Количество={numberOfBubbles}, БазовыйРазмер={baseBubbleSize}");
+
+            for (int i = 0; i < numberOfBubbles; i++)
+            {
+                var bubble = _serviceProvider.GetService<BubbleViewModelBase>() ?? new BubbleViewModelBase();
+                bubble.Size = baseBubbleSize * (0.7 + _random.NextDouble() * 0.6);
+                bubble.ColorBrush = bubbleColor;
+                
+                bubble.AquariumWidth = AquariumWidth;
+                bubble.AquariumHeight = AquariumHeight;
+
+                // --- Инициализируем начальную позицию СЛУЧАЙНО по всему аквариуму ---
+                bubble.X = AquariumX + _random.NextDouble() * (AquariumWidth - bubble.Size);
+                bubble.Y = AquariumY + _random.NextDouble() * (AquariumHeight - bubble.Size);
+
+                // --- Создаем и присваиваем объект физики каждому пузырьку ---
+                // Передаем начальную X для определения начального бокового смещения
+                bubble.PhysicsLogic = new BubblePhysics(AquariumWidth, AquariumHeight, bubble.X);
+
+                // Устанавливаем начальные параметры симуляции для физики этого пузырька
+                bubble.PhysicsLogic.UpdateSimulationParameters(
+                    CurrentProcessSpeed, // Текущая скорость
+                    CurrentFlameLevel / 5.0 // Нормализованный нагрев
+                );
+
+                Bubbles.Add(bubble);
+            }
+            Debug.WriteLine($"[{this.GetType().Name}] GenerateBubbles: Сгенерировано {Bubbles.Count} пузырьков.");
+        }
+
         private void SimulationTimer_Tick(object? sender, EventArgs e)
         {
-            // Debug.WriteLine($"[{this.GetType().Name}] SimulationTimer_Tick: Тик таймера."); // Осторожно, может спамить
+            double currentSpeed = CurrentProcessSpeed;
+            double currentHeat = CurrentFlameLevel;
 
-            // !!! ЭТО МЕСТО ДЛЯ ВАШЕЙ СИМУЛЯЦИОННОЙ ЛОГИКИ !!!
-            // Перебираем все пузырьки в коллекции Bubbles
+            if (currentSpeed <= 0) return;
+
+            bool firstBubbleLoggedThisTick = false;
             foreach (var bubble in Bubbles)
             {
-                // --- ОБНОВЛЕНИЕ ПОЗИЦИИ ПУЗЫРЬКА ---
-                // ЭТО ОЧЕНЬ УПРОЩЕННЫЙ ПРИМЕР. ВАМ НУЖНО РЕАЛИЗОВАТЬ ВАШУ ЛОГИКУ КОНВЕКЦИИ ЗДЕСЬ!
-                // Например:
-                // - Рассчитать новую позицию (X, Y) на основе SimulationSpeed, HeatIntensity,
-                //   направления потока, случайных флуктуаций и т.д.
-                // - Возможно, учитывать "столкновения" с другими пузырьками или стенками.
+                if (bubble.PhysicsLogic == null) continue;
 
-                // Пример: Простое случайное смещение
-                double step = SimulationSpeed * 2; // Шаг зависит от скорости симуляции
-                bubble.X += (_random.NextDouble() - 0.5) * step; // Случайное смещение по X
-                bubble.Y += (_random.NextDouble() - 0.5) * step; // Случайное смещение по Y
+                // Обновляем параметры физики для пузырька актуальными значениями
+                bubble.PhysicsLogic.UpdateSimulationParameters(currentSpeed, currentHeat / 5.0);
 
-                // Ограничиваем движение границами области симуляции (например, стенками кастрюли)
-                 // if (bubble.X < 0) bubble.X = 0;
-                 // if (bubble.Y < 0) bubble.Y = 0;
-                 // ... (проверки границ по всем сторонам) ...
+                // Вызываем метод обновления позиции из его собственного объекта физики
+                bubble.PhysicsLogic.UpdateBubblePosition(bubble); // Передаем сам bubble
 
-                // Привязки в XAML (Canvas.Left="{Binding X}", Canvas.Top="{Binding Y}")
-                // автоматически обновят положение эллипсов на Canvas,
-                // так как свойства X и Y помечены [Reactive] (через ViewModelBase).
+                if (!firstBubbleLoggedThisTick) // Логируем только первый пузырек за тик
+                {
+                    // Debug.WriteLine($"[{this.GetType().Name}] Tick: Bubble[0] Pos:({bubble.X:F1},{bubble.Y:F1})");
+                    firstBubbleLoggedThisTick = true;
+                }
             }
         }
     }

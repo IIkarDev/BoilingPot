@@ -3,10 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:BoilingPot.ViewModels.SettingsViewModels"
-             xmlns:ui="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="BoilingPot.Views.SettingsViews.GeneralSettingsView"
-             x:DataType="vm:GeneralSettingsViewModel" 
+             x:DataType="vm:GeneralSettingsViewModel"
              Padding="10">
 
     <Design.DataContext>
@@ -14,14 +13,14 @@
     </Design.DataContext>
 
     <UserControl.Styles>
-         <Style Selector="TextBlock.SettingHeader">
-             <Setter Property="Margin" Value="0,15,0,5"/>
-             <Setter Property="FontWeight" Value="SemiBold"/>
-         </Style>
-          <Style Selector="TextBlock.Subtle">
-             <Setter Property="Opacity" Value="0.7"/>
-              <Setter Property="FontSize" Value="12"/>
-         </Style>
+        <Style Selector="TextBlock.SettingHeader">
+            <Setter Property="Margin" Value="0,15,0,5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.Subtle">
+            <Setter Property="Opacity" Value="0.7" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
     </UserControl.Styles>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -41,7 +40,6 @@
             <HeaderedContentControl Header="Отображать кнопку вызова панели">
                 <ToggleSwitch
                     IsChecked="{Binding ShowDataPanelButton}"
-                    IsEnabled="{Binding ShowDataPanelButton}"
                     OnContent="Вкл" OffContent="Выкл" />
             </HeaderedContentControl>
 

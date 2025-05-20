@@ -11,7 +11,7 @@
         <ResourceDictionary>
             <!-- Регистрация конвертера -->
             <conv:StringEqualsConverter x:Key="StringEqualsConverter"/>
-
+            
             <!-- Подключаем наши словари с цветами акцентов -->
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://BoilingPot/Resources/Palettes/DefaultAccentPalette.axaml"/>
