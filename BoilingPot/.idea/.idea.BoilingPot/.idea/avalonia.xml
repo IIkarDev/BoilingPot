@@ -60,6 +60,8 @@
         <entry key="AvaloniaApplication1/Views/ShowAboutView.axaml" value="AvaloniaApplication1/AvaloniaApplication1.csproj" />
         <entry key="BoilingPot/App.axaml" value="BoilingPot/BoilingPot.csproj" />
         <entry key="BoilingPot/Resources/Components/AltPotTheme.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Resources/Components/AltStoveTheme.axaml" value="BoilingPot/BoilingPot.csproj" />
+        <entry key="BoilingPot/Resources/Palettes/DefaultAccentPalette.axaml" value="BoilingPot/BoilingPot.csproj" />
         <entry key="BoilingPot/Views/CommonView.axaml" value="BoilingPot/BoilingPot.csproj" />
         <entry key="BoilingPot/Views/Components/ControlPanelView.axaml" value="BoilingPot/BoilingPot.csproj" />
         <entry key="BoilingPot/Views/Components/DataPanelView.axaml" value="BoilingPot/BoilingPot.csproj" />
