@@ -69,8 +69,8 @@ namespace BoilingPot.Models
         {
             if (bubble == null || _currentSpeedFactor <= 0) return;
 
-            double baseSpeed = 2.0;
-            double heatEffect = 3.0 * _currentHeatFactor;
+            double baseSpeed = 0.5;
+            double heatEffect = 5.0 * _currentHeatFactor;
 
             double verticalSpeed = (baseSpeed + heatEffect) * _currentSpeedFactor * _inherentBuoyancy;
             double horizontalSpeed = (baseSpeed * 0.5 + heatEffect * 0.3) * _currentSpeedFactor * _inherentBuoyancy;
