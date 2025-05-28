@@ -38,22 +38,22 @@ namespace BoilingPot.ViewModels.SettingsViewModels
         /// <summary>
         /// Горизонтальное выравнивание кнопки панели данных (вычисляется).
         /// </summary>
-        [Reactive] public HorizontalAlignment DataPanelButtonHorAlignment { get; private set; } = HorizontalAlignment.Right;
+        [Reactive] public HorizontalAlignment DataPanelButtonHorAlignment { get; set; } = HorizontalAlignment.Right;
 
         /// <summary>
         /// Вертикальное выравнивание кнопки панели данных (вычисляется).
         /// </summary>
-        [Reactive] public VerticalAlignment DataPanelButtonVerAlignment { get; private set; } = VerticalAlignment.Top;
+        [Reactive] public VerticalAlignment DataPanelButtonVerAlignment { get; set; } = VerticalAlignment.Top;
 
         /// <summary>
         /// Символ иконки для кнопки панели данных (вычисляется).
         /// </summary>
-        [Reactive] public Symbol DataPanelButtonSymbol { get; private set; } = Symbol.ChevronLeft;
+        [Reactive] public Symbol DataPanelButtonSymbol { get; set; } = Symbol.ChevronLeft;
 
         /// <summary>
         /// Расположение панели данных (слева/справа) (вычисляется).
         /// </summary>
-        [Reactive] public SplitViewPanePlacement DataPanePlacement { get; private set; } = SplitViewPanePlacement.Right;
+        [Reactive] public SplitViewPanePlacement DataPanePlacement { get; set; } = SplitViewPanePlacement.Right;
 
 
         /// <summary>

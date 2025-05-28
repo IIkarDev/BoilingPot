@@ -88,6 +88,10 @@
                                     <TextBlock Text="Начальная t° жидкости (T₀):" Classes="DataLabel" />
                                     <TextBlock Text="{Binding InitialTemperature, StringFormat='{}{0:F1} °C'}"
                                                Classes="DataValue" />
+                                    
+                                    <TextBlock Text="Температура t° кипения жидкости (T_кип):" Classes="DataLabel" />
+                                    <TextBlock Text="{Binding BoilingPointTemperature, StringFormat='{}{0:F1} °C'}"
+                                               Classes="DataValue" />
 
                                     <TextBlock Text="Текущая средняя t° (T_тек):" Classes="DataLabel" />
                                     <TextBlock Text="{Binding CurrentAverageTemperature, StringFormat='{}{0:F1} °C'}"

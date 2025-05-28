@@ -85,6 +85,9 @@ namespace BoilingPot.ViewModels
         /// Команда для закрытия панели/окна настроек.
         /// </summary>
         public ReactiveCommand<Unit, Unit> CloseSettingsCommand { get; }
+        
+        public ReactiveCommand<Unit, Unit> ApplyAndSaveChangesCommand { get; }
+
 
         #endregion
 

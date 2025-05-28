@@ -15,7 +15,7 @@
     </Design.DataContext>
 
     <!-- Главный Canvas для позиционирования всех элементов -->
-    <Canvas>
+    <Canvas Margin="200, 100">
         <!-- 1. Плита (очень упрощенная, статичная) -->
         <!-- Располагаем внизу по центру -->
         <Rectangle Fill="#4A4A4A" 
@@ -31,33 +31,37 @@
 
         <!-- 2. Кастрюля (стенки и дно, статичные) -->
         <!-- Координаты и размеры заданы жестко -->
-        <Rectangle Name="PotLeftWall" Fill="#778899" 
-                   Width="20" Height="300"
-                   Canvas.Left="100" Canvas.Top="170"
+        <Rectangle Name="PotLeftWall" Fill="Gray" 
+                   Width="20" Height="315"
+                   Canvas.Left="100" Canvas.Top="155"
                    ZIndex="2"/>
-        <Rectangle Name="PotRightWall" Fill="#778899"
-                   Width="20" Height="300"
-                   Canvas.Left="380" Canvas.Top="170"
+        <Rectangle Name="PotRightWall" Fill="Gray"
+                   Width="20" Height="315"
+                   Canvas.Left="380" Canvas.Top="155"
                    ZIndex="2"/>
-        <Rectangle Name="PotBottom" Fill="#696969" 
+        <Rectangle Name="PotBottom" Fill="gray" 
                    Width="300" Height="20"  
                    Canvas.Left="100" Canvas.Top="450" 
                    ZIndex="2"/>
-
+        <Rectangle Name="PotBack" Fill="Silver" 
+                   Width="260" Height="300"  
+                   Canvas.Left="120" Canvas.Top="155" 
+                   ZIndex="2"/>
+        
         <!-- 3. Область для пузырьков (ItemsControl) -->
         <!-- Canvas.Left = Canvas.Left(PotLeftWall) + PotWallThickness -->
         <!-- Canvas.Top = Canvas.Top(PotLeftWall) -->
         <ItemsControl Name="BubblesDisplay" ItemsSource="{Binding Bubbles}"
                       Width="{Binding AquariumWidth}"
                       Height="{Binding AquariumHeight}"
-                      Canvas.Left="110"  
-                      Canvas.Top="100"   
+                      Canvas.Left="115"  
+                      Canvas.Top="115"   
                       ZIndex="3">
             
             <!-- ########################## ВОТ ЭТОТ БЛОК УБИРАЕМ ЕСЛИ МОЗОЛИТ ГЛАЗА ПОКА ЧТО ################################################################# -->
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <Canvas/>
+                    <Canvas Opacity="0.6"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
@@ -66,7 +70,7 @@
                         <Ellipse Width="{Binding Size}"
                                  Height="{Binding Size}"
                                  Fill="{Binding ColorBrush}"
-                                 Stroke="Gray"
+                                 Stroke="#1c1c1c"
                                  StrokeThickness="1"
                                  Canvas.Left="{Binding X}"
                                  Canvas.Top="{Binding Y}"/>

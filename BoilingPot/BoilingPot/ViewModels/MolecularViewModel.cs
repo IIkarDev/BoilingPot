@@ -27,8 +27,10 @@ namespace BoilingPot.ViewModels
         private readonly ModelSettingsViewModel _modelSettings;
 
         [Reactive] public double CurrentProcessSpeed { get; set; }
-
         [Reactive] public int CurrentFlameLevel { get; set; }
+        [Reactive] public double CurrentTemperature { get; set; }
+        [Reactive] public double CurrentBoilingTemperature { get; set; }
+
 
         // --- Симуляция ---
         private DispatcherTimer? _simulationTimer;
@@ -39,8 +41,10 @@ namespace BoilingPot.ViewModels
         // --- Параметры "аквариума" для пузырьков ---
         public double AquariumX { get; } = 0;
         public double AquariumY { get; } = 0;
-        public double AquariumWidth { get; } = 280;
-        public double AquariumHeight { get; } = 380;
+        public double AquariumWidth { get; } = 275;
+        public double AquariumHeight { get; } = 360;
+        
+        public IBrush BetaColorBrush { get; } = Brushes.Transparent;
 
         // --- Визуализация пламени ---
         [Reactive] public double FlameVisualHeight { get; private set; }
@@ -157,7 +161,7 @@ namespace BoilingPot.ViewModels
                 // Устанавливаем начальные параметры симуляции для физики этого пузырька
                 bubble.PhysicsLogic.UpdateSimulationParameters(
                     CurrentProcessSpeed, // Текущая скорость
-                    CurrentFlameLevel / 5.0 // Нормализованный нагрев
+                    ((CurrentTemperature - 20) / CurrentBoilingTemperature) * 1.5 // Нормализованный нагрев
                 );
 
                 Bubbles.Add(bubble);
@@ -168,7 +172,8 @@ namespace BoilingPot.ViewModels
         private void SimulationTimer_Tick(object? sender, EventArgs e)
         {
             double currentSpeed = CurrentProcessSpeed;
-            double currentHeat = CurrentFlameLevel;
+            double currentHeat = ((CurrentTemperature - 20) / CurrentBoilingTemperature) * 1.5;
+            Debug.WriteLine($"currentHeat {currentHeat}");
 
             if (currentSpeed <= 0) return;
 
@@ -178,7 +183,7 @@ namespace BoilingPot.ViewModels
                 if (bubble.PhysicsLogic == null) continue;
 
                 // Обновляем параметры физики для пузырька актуальными значениями
-                bubble.PhysicsLogic.UpdateSimulationParameters(currentSpeed, currentHeat / 5.0);
+                bubble.PhysicsLogic.UpdateSimulationParameters(currentSpeed, currentHeat);
 
                 // Вызываем метод обновления позиции из его собственного объекта физики
                 bubble.PhysicsLogic.UpdateBubblePosition(bubble); // Передаем сам bubble

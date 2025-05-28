@@ -49,6 +49,8 @@ internal class Program // 'internal' означает, что класс дос�
         Debug.WriteLine(
             $"[{nameof(Program)}.ConfigureDependencies] Регистрация IThemeLoaderService как Singleton (реализация ThemeLoaderService).");
         services.AddSingleton<IThemeLoaderService, ThemeLoaderService>();
+        services.AddSingleton<ISettingsService, SettingsService>(); // <<< РЕГИСТРИРУЕМ НОВЫЙ СЕРВИС НАСТРОЕК
+
 
         // --- Регистрация ViewModel Компонентов ---
         // PotViewModelBase регистрируется как Singleton. Это означает, что все части приложения,

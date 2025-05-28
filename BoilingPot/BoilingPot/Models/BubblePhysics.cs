@@ -107,7 +107,7 @@ namespace BoilingPot.Models
                     break;
 
                 case MovementDirection.DownCenter:
-                    deltaY = verticalSpeed * (0.6 + (1 - _currentHeatFactor) * 0.4);
+                    deltaY = verticalSpeed * (0.5 + (1 - _currentHeatFactor) * 0.4);
                     deltaX += (_localRandom.NextDouble() - 0.5) * horizontalSpeed * 0.2;
                     if (bubble.Y + bubble.Size + deltaY >= _targetYLevelDown)
                     {

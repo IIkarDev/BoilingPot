@@ -2,13 +2,18 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Layout;
 using Avalonia.Threading;
+using BoilingPot.Models;
 using BoilingPot.Services;
 using FluentAvalonia.UI.Controls;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +41,15 @@ public class MainViewModel : ViewModelBase
     ///     Сервис для загрузки тем/стилей из .axaml файлов.
     /// </summary>
     private readonly IThemeLoaderService _themeLoader; // Он не используется напрямую здесь, а в ModelSettingsViewModel
-
+    
+    private readonly ISettingsService _settingsService; // Добавляем сервис
+    
+    // --- Имя и Путь к Файлу Настроек ---
+    private const string SettingsFileName = "boiling_pot_settings.json";
+    private readonly string _settingsFilePath;
+    
+    public ReactiveCommand<Unit, Unit> ApplyAndSaveCurrentSettingsCommand { get; } 
+    
     #endregion
 
     #region Свойства Управления Состоянием UI
@@ -153,6 +166,7 @@ public class MainViewModel : ViewModelBase
     [Reactive] public double CurrentAverageTemperature { get; private set; }
     [Reactive] public double LiquidVolume { get; private set; }
     [Reactive] public double LiquidDensity { get; private set; }
+    [Reactive] public double BoilingPointTemperature { get; private set; }
     [Reactive] public double SpecificHeatCapacity { get; private set; }
     [Reactive] public double LiquidMass { get; private set; }
     [Reactive] public double HeatTransferred { get; private set; }
@@ -177,7 +191,9 @@ public class MainViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> GoToHomeCommand { get; }
     public ReactiveCommand<Unit, Unit> GoToCommonCommand { get; }
     public ReactiveCommand<Unit, Unit> GoToMolecularCommand { get; }
-
+    
+    public ReactiveCommand<Unit, Unit> SaveApplicationSettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> LoadApplicationSettingsCommand { get; }
     // Команды для управления видимостью панелей
     public ReactiveCommand<Unit, Unit> ShowSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowAboutCommand { get; }
@@ -206,10 +222,12 @@ public class MainViewModel : ViewModelBase
         IServiceProvider serviceProvider,
         IThemeLoaderService themeLoader,
         SettingsViewModel settingsViewModel,
+        ISettingsService settingsService,
         CommonViewModel commonViewModel)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _themeLoader = themeLoader; // Сохраняем, если нужен
+        _settingsService = settingsService; // Сохраняем
         CommonVm = commonViewModel;
         SettingsVM = settingsViewModel ?? throw new ArgumentNullException(nameof(settingsViewModel));
         Debug.WriteLine(">>> MainViewModel СОЗДАН (RxUI)");
@@ -227,6 +245,22 @@ public class MainViewModel : ViewModelBase
         Debug.WriteLine(
             $"[{GetType().Name}] Конструктор RxUI: Обработчик CloseSettingsInteraction для SettingsVM настроен.");
 
+        // ---- ПЕРЕДЕЛЫВАЕМ ЛОГИКУ НАСТРОЕК ----
+        // SettingsService теперь внутри MainViewModel
+        string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string appSpecificFolder = Path.Combine(appDataPath, "BoilingPotApp");
+        Directory.CreateDirectory(appSpecificFolder);
+        _settingsFilePath = Path.Combine(appSpecificFolder, SettingsFileName);
+        // _jsonOptions = new JsonSerializerOptions { /* ... конвертеры ... */ };
+        // _currentAppSettings = new AppSettings(); // Начальные дефолтные
+        // --- Конец логики настроек ---
+
+        // --- Инициализация команд ---
+        // ... (команды навигации GoToHome, GoToCommon и т.д. как раньше) ...
+        SaveApplicationSettingsCommand = ReactiveCommand.CreateFromTask(ExecuteSaveSettingsDialogAsync);
+        LoadApplicationSettingsCommand = ReactiveCommand.CreateFromTask(ExecuteLoadSettingsDialogAsync);
+
+
 
         // --- Инициализация Команд ---
         GoToHomeCommand = ReactiveCommand.Create(ExecuteGoToHome);
@@ -239,13 +273,43 @@ public class MainViewModel : ViewModelBase
 
         ExitApplicationCommand = ReactiveCommand.Create(ExecuteExitApplication);
         CoolDownCommand = ReactiveCommand.Create(() => { HeatTransferred = 0; });
+        ApplyAndSaveCurrentSettingsCommand = ReactiveCommand.CreateFromTask(ExecuteApplyAndSaveCurrentSettingsAsync);
 
+        ApplySettingsFromService(_settingsService.CurrentSettings);
 
+        // --- Подписки на изменения свойств для АВТОСОХРАНЕНИЯ (опционально) ---
+        // Или можно сохранять только по кнопке "Применить" в SettingsViewModel
+        
         // --- Инициализация Вычисляемых Свойств ---
         _isHomeViewSelectedHelper = this.WhenAnyValue(x => x.CurrentViewModel)
             .Select(vm => vm is HomeViewModel) // true, если текущий VM - HomeViewModel
             .ToProperty(this, x => x.IsHomeViewSelected); // Преобразуем в свойство
 
+        
+        // --- Подписки на изменения свойств для ОБНОВЛЕНИЯ AppSettings (но без автосохранения в файл) ---
+        // Теперь сохранение в файл будет по явной команде.
+        var settingsToWatch = Observable.Merge(
+            this.WhenAnyValue(x => x.ProcessSpeed).Select(_ => Unit.Default), // Unit.Default чтобы типы совпали
+            this.WhenAnyValue(x => x.FlameLevel).Select(_ => Unit.Default),
+            this.WhenAnyValue(x => x.SelectedVolume).Select(_ => Unit.Default),
+            this.WhenAnyValue(x => x.SelectedLiquidType).Select(_ => Unit.Default),
+            SettingsVM.GeneralSettings.WhenAnyValue(x => x.SelectedLanguage).Select(_ => Unit.Default),
+            // ... и так далее для ВСЕХ свойств, которые должны быть частью AppSettings
+            SettingsVM.ThemeSettings.WhenAnyValue(x => x.SelectedThemeKey).Select(_ => Unit.Default),
+            SettingsVM.ThemeSettings.WhenAnyValue(x => x.SelectedAccentPalette).Select(_ => Unit.Default),
+            SettingsVM.ModelSettings.WhenAnyValue(x => x.SelectedPotThemeKey).Select(_ => Unit.Default)
+            // Добавьте сюда остальные свойства из General, Theme, Model settings
+        );
+
+        settingsToWatch
+            .Throttle(TimeSpan.FromMilliseconds(500)) // Небольшая задержка
+            .Subscribe(_ =>
+            {
+                // Просто обновляем объект CurrentSettings в сервисе, но НЕ сохраняем в файл.
+                // Сохранение будет по команде.
+                UpdateAppSettingsFromViewModels(_settingsService.CurrentSettings);
+                Debug.WriteLine("[MainViewModel] AppSettings в памяти обновлены после изменения ViewModel.");
+            });
 
         // Подписка на нажатие на выбранный элемент в NavigationView из ControlPanel
         this.WhenAnyValue(x => x.SelectedNavItem)
@@ -260,8 +324,8 @@ public class MainViewModel : ViewModelBase
                 {
                     case "Home": ExecuteGoToHome(); break;
                     case "Data": ExecuteShowDataPanel(); break;
-                    case "Load": break;
-                    case "Save": break;
+                    case "Load": _ = ExecuteLoadSettingsDialogAsync(); break;
+                    case "Save": _ = ExecuteSaveSettingsDialogAsync(); break;
                     case "Settings": ExecuteShowSettings(); break;
                     case "About": ExecuteShowAbout(); break;
                     case "Exit": ExecuteExitApplication(); break;
@@ -283,18 +347,22 @@ public class MainViewModel : ViewModelBase
         // --- Подписка на СВОИ ProcessSpeed и FlameLevel ---
         // Когда они меняются, и если текущий View - это MolecularViewModel,
         // мы обновляем соответствующие свойства в MolecularViewModel.
-        this.WhenAnyValue(x => x.ProcessSpeed, x => x.FlameLevel, x => x.CurrentViewModel)
+        this.WhenAnyValue(x => x.ProcessSpeed, x => x.FlameLevel,
+                x => x.CurrentViewModel,
+                x => x.CurrentAverageTemperature, x => x.BoilingPointTemperature)
             .Where(tuple => tuple.Item3 is MolecularViewModel) // Реагируем только если текущий вид - молекулярный
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(tuple =>
             {
-                var (speed, flame, currentVm) = tuple;
+                var (speed, flame, currentVm, curtemp, curboiltemp) = tuple;
                 if (currentVm is MolecularViewModel molecularVm)
                 {
                     Debug.WriteLine(
                         $"[MainViewModel] Обновление параметров в MolecularViewModel: Speed={speed}, Flame={flame}");
                     molecularVm.CurrentProcessSpeed = speed;
                     molecularVm.CurrentFlameLevel = flame;
+                    molecularVm.CurrentTemperature = curtemp;
+                    molecularVm.CurrentBoilingTemperature = curboiltemp;
                 }
             });
 
@@ -305,6 +373,12 @@ public class MainViewModel : ViewModelBase
         // --- Инициализируем начальное состояние ---
         IsCommonViewSelected = true;
 
+        SettingsVM.CloseSettingsInteraction.RegisterHandler(interaction =>
+        {
+            IsShowingSettings = false;
+            interaction.SetOutput(Unit.Default);
+        });
+        
         // --- Устанавливаем начальный вид ---
         ExecuteGoToHome();
     }
@@ -446,17 +520,127 @@ public class MainViewModel : ViewModelBase
         IsShowingDataPanel = !IsShowingDataPanel;
     }
 
-
-    private void ExecuteShowDataPanelButton()
-    {
-        SettingsVM.GeneralSettings.ShowDataPanelButton = !SettingsVM.GeneralSettings.ShowDataPanelButton;
-    }
-
     private void ExecuteExitApplication()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             desktop.Shutdown();
     }
+    
+        // --- Метод для обновления свойств ViewModel из объекта AppSettings ---
+        private void ApplySettingsFromService(AppSettings settings)
+        {
+            Debug.WriteLine("[MainViewModel] ApplySettingsFromService: Применение загруженных/текущих настроек.");
+
+            // ControlPanel (MainViewModel)
+            this.ProcessSpeed = settings.ProcessSpeed;
+            this.FlameLevel = settings.FlameLevel;
+            this.SelectedVolume = settings.SelectedVolume;
+            this.SelectedLiquidType = settings.SelectedLiquidType;
+
+            // GeneralSettingsViewModel
+            var gsVM = SettingsVM.GeneralSettings;
+            gsVM.SelectedLanguage = settings.SelectedLanguage;
+            gsVM.ShowDataPanelButton = settings.ShowDataPanelButton;
+            gsVM.SelectedDataPanelButtonPosition = settings.SelectedDataPanelButtonPosition;
+            gsVM.IsDataPanelOnLeft = settings.IsDataPanelOnLeft;
+            if(Enum.TryParse<HorizontalAlignment>(settings.DataPanePlacementString, out var horAlign))
+                gsVM.DataPanelButtonHorAlignment = horAlign; else gsVM.DataPanelButtonHorAlignment = HorizontalAlignment.Right;
+            if(Enum.TryParse<VerticalAlignment>(settings.SelectedDataPanelButtonPosition.ToString(), out var verAlign)) 
+                gsVM.DataPanelButtonVerAlignment = verAlign; else gsVM.DataPanelButtonVerAlignment = VerticalAlignment.Top;
+            if(Enum.TryParse<Symbol>(settings.DataPanelButtonSymbolString, true, out var symbol))
+                gsVM.DataPanelButtonSymbol = symbol; else gsVM.DataPanelButtonSymbol = Symbol.ChevronLeft;
+
+            gsVM.ShowHomeNavItem = settings.ShowHomeNavItem; /* ... и другие NavItem ... */
+
+            // ThemeSettingsViewModel
+            var tsVM = SettingsVM.ThemeSettings;
+            tsVM.SelectedThemeKey = settings.SelectedThemeKey; // Вызовет ApplyTheme
+            tsVM.SelectedAccentPalette = tsVM.AccentPalettes.FirstOrDefault(p => p.Name == settings.SelectedAccentPaletteName) ?? tsVM.AccentPalettes.FirstOrDefault(); // Вызовет ApplyAccentPalette
+
+            // ModelSettingsViewModel
+            var msVM = SettingsVM.ModelSettings;
+            // Сохраняем пути к кастомным темам, чтобы ViewModel мог их загрузить при выборе "Custom"
+            // msVM.SetCustomThemeFilePath("Pot", settings.CustomPotThemeFilePath);
+            // msVM.SetCustomThemeFilePath("Stove", settings.CustomStoveThemeFilePath);
+            // msVM.SetCustomThemeFilePath("Bubble", settings.CustomBubbleThemeFilePath);
+            // Устанавливаем ключи тем (это вызовет применение тем в ModelSettingsVM)
+            msVM.SelectedPotThemeKey = settings.PotThemeKey;
+            msVM.SelectedStoveThemeKey = settings.StoveThemeKey;
+            msVM.SelectedBubbleThemeKey = settings.BubbleThemeKey;
+
+            Debug.WriteLine("[MainViewModel] ApplySettingsFromService: Настройки применены к ViewModel.");
+             // Обновляем связанные параметры симуляции, если они зависят от загруженных настроек
+             UpdateLiquidParameters(this.SelectedVolume, this.SelectedLiquidType);
+             // UpdateHeatingState(this.FlameLevel, this.ProcessSpeed);
+        }
+
+        // --- Метод для обновления объекта AppSettings из текущих ViewModel ---
+        private void UpdateAppSettingsFromViewModels(AppSettings settings)
+        {
+            Debug.WriteLine("[MainViewModel] UpdateAppSettingsFromViewModels: Обновление объекта AppSettings.");
+            // ControlPanel (MainViewModel)
+            settings.ProcessSpeed = this.ProcessSpeed;
+            settings.FlameLevel = this.FlameLevel;
+            settings.SelectedVolume = this.SelectedVolume;
+            settings.SelectedLiquidType = this.SelectedLiquidType;
+
+            // GeneralSettingsViewModel
+            settings.SelectedLanguage = SettingsVM.GeneralSettings.SelectedLanguage;
+            settings.ShowDataPanelButton = SettingsVM.GeneralSettings.ShowDataPanelButton;
+            // ... и так далее для всех свойств GeneralSettings ...
+            settings.DataPanePlacementString = SettingsVM.GeneralSettings.DataPanePlacement.ToString();
+            settings.DataPanelButtonSymbolString = SettingsVM.GeneralSettings.DataPanelButtonSymbol.ToString();
+
+
+            // ThemeSettingsViewModel
+            settings.SelectedThemeKey = SettingsVM.ThemeSettings.SelectedThemeKey;
+            settings.SelectedAccentPaletteName = SettingsVM.ThemeSettings.SelectedAccentPalette?.Name;
+
+            // ModelSettingsViewModel
+            settings.PotThemeKey = SettingsVM.ModelSettings.SelectedPotThemeKey;
+            // settings.CustomPotThemeFilePath = SettingsVM.ModelSettings.GetCustomThemeFilePath("Pot");
+            // ... и так далее для Stove и Bubble ...
+            Debug.WriteLine("[MainViewModel] UpdateAppSettingsFromViewModels: Объект AppSettings обновлен.");
+        }
+
+
+        // --- Реализация Команд Сохранения/Загрузки ---
+        private async Task ExecuteSaveSettingsDialogAsync()
+        {
+            Debug.WriteLine("[MainViewModel] ExecuteSaveSettingsDialogAsync: Вызвана команда сохранения через диалог.");
+            // Сначала убедимся, что CurrentSettings в сервисе актуальны
+            UpdateAppSettingsFromViewModels(_settingsService.CurrentSettings);
+            // Затем вызываем метод сервиса для сохранения через диалог
+            bool saved = await _settingsService.SaveSettingsToFileDialogAsync();
+            if (saved) { Debug.WriteLine("[MainViewModel] Настройки сохранены через диалог."); /* Показать уведомление? */ }
+            else { Debug.WriteLine("[MainViewModel] Сохранение через диалог отменено или не удалось."); }
+        }
+
+        private async Task ExecuteLoadSettingsDialogAsync()
+        {
+            Debug.WriteLine("[MainViewModel] ExecuteLoadSettingsDialogAsync: Вызвана команда загрузки через диалог.");
+            bool loaded = await _settingsService.LoadSettingsFromFileDialogAsync();
+            if (loaded)
+            {
+                Debug.WriteLine("[MainViewModel] Настройки загружены из файла через диалог. Применяем...");
+                ApplySettingsFromService(_settingsService.CurrentSettings); // Применяем загруженные настройки
+                // TODO: Уведомить пользователя об успехе
+            }
+            else { Debug.WriteLine("[MainViewModel] Загрузка через диалог отменена или не удалась."); }
+        }
+
+        private async Task ExecuteApplyAndSaveCurrentSettingsAsync()
+        {
+            Debug.WriteLine("[MainViewModel] ExecuteApplyAndSaveCurrentSettingsAsync: Применение и сохранение текущих настроек.");
+            // 1. Обновляем объект AppSettings в сервисе из текущих ViewModel
+            UpdateAppSettingsFromViewModels(_settingsService.CurrentSettings);
+            // 2. Сохраняем этот объект в файл по умолчанию
+            await _settingsService.SaveDefaultSettingsAsync();
+            // 3. (Опционально) Применяем настройки снова, если нужно (хотя они уже должны быть в ViewModel)
+            // ApplySettingsFromService(_settingsService.CurrentSettings);
+            Debug.WriteLine("[MainViewModel] Текущие настройки применены и сохранены в файл по умолчанию.");
+            // TODO: Уведомить пользователя
+        }
 
     #endregion
 
@@ -479,30 +663,37 @@ public class MainViewModel : ViewModelBase
             case "Вода":
                 LiquidDensity = 998; // кг/м³ при ~20°C
                 SpecificHeatCapacity = 4186; // Дж/(кг·°C)
+                BoilingPointTemperature = 100.00;
                 break;
             case "Керосин":
                 LiquidDensity = 800;
                 SpecificHeatCapacity = 2090;
+                BoilingPointTemperature = 160.11;
                 break;
             case "Масло (раст.)": // Подсолнечное как пример
                 LiquidDensity = 920;
                 SpecificHeatCapacity = 1900; // Примерно
+                BoilingPointTemperature = 227.82;
                 break;
             case "Парафин": // Твердый при комн. темп, но для симуляции нагрева жидкого
                 LiquidDensity = 770; // Жидкий
                 SpecificHeatCapacity = 2100; // Жидкий
+                BoilingPointTemperature = 324.20;
                 break;
             case "Спирт": // Этанол
                 LiquidDensity = 789;
-                SpecificHeatCapacity = 2440;
+                SpecificHeatCapacity = 2440;            
+                BoilingPointTemperature = 78.37;
                 break;
             case "Ртуть (жид.)":
                 LiquidDensity = 13534;
                 SpecificHeatCapacity = 139;
+                BoilingPointTemperature = 357.13;
                 break;
             default:
                 LiquidDensity = 0; // По умолчанию вода
                 SpecificHeatCapacity = 0;
+                BoilingPointTemperature = 0;
                 break;
         }
 
@@ -636,7 +827,9 @@ public class MainViewModel : ViewModelBase
         if (IsHeatingActive) HeatTransferred += PowerRating * simulatedMillisecondsThisTick / 1000.0;
         else if (HeatTransferred >= 0) HeatTransferred -= 0.07 * simulatedMillisecondsThisTick;
 
-        CurrentAverageTemperature = InitialTemperature + HeatTransferred / (LiquidMass * SpecificHeatCapacity);
+        if ((BoilingPointTemperature - (InitialTemperature + HeatTransferred / (LiquidMass * SpecificHeatCapacity))) > 0.1d)
+            CurrentAverageTemperature = InitialTemperature + HeatTransferred / (LiquidMass * SpecificHeatCapacity);
+        else CurrentAverageTemperature = BoilingPointTemperature;
         // ... (расчет температуры и т.д., используя simulatedMillisecondsThisTick или realTimeDelta * ProcessSpeed) ...
     }
 
